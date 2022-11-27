@@ -1,3 +1,6 @@
+# Implementation from
+# https://github.com/Simon4Yan/Meta-set/blob/58e498cc95a879eec369d2ccf8da714baf8480e2/learn/train.py
+
 import argparse
 import sys
 sys.path.append(".")
@@ -102,7 +105,7 @@ def main():
         test(model, device, test_loader)
         scheduler.step()
     if args.save_model:
-        torch.save(model.state_dict(), "../model/resnet110.pt")
+        torch.save(model.state_dict(), f"../model/resnet110-{args.epochs}.pt")
 
 
 if __name__ == '__main__':

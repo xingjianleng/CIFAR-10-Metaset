@@ -1,5 +1,7 @@
 # Based on the ResNet implementation in torchvision
 # https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
+# Model implementation from
+# https://github.com/yueatsprograms/ttt_cifar_release/blob/acac817fb7615850d19a8f8e79930240c9afe8b5/models/ResNet.py
 
 import math
 import torch
