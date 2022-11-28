@@ -19,13 +19,13 @@ CLASSES = (
     "truck"
 )
 
-CLASSNAME_MAPPING = {
+FOLDER_ALIAS = {
     "sedans": "automobile",
     "suvs": "automobile",
     "trucks": "truck",
 }
 
-transform = T.Compose([
+TRANSFORM = T.Compose([
     T.ToTensor(),
     T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
@@ -39,74 +39,102 @@ def process_single(img_path):
 def process_multiple(imgs_path):
     # the imgs_path is a Path object
     assert isinstance(imgs_path, Path)
-    # convert multiple images
+    # convert multiple images (List of ndarray)
     rtn = []
     img_suffix = (".jpg", ".png")
     for file in imgs_path.iterdir():
         if file.suffix in img_suffix:
             rtn.append(process_single(str(file)))
-    return np.array(rtn)
+    return rtn
 
 
 class CustomCIFAR(torch.utils.data.Dataset):
     # Custom Dataset class for new CIFAR test set
-    def __init__(self, imgs_path, transform=None):
-        self.imgs = process_multiple(imgs_path=imgs_path)
+    # NOTE: This Dataset class is subjected to change, current implementation require
+    #       the following file structure.
+    #       dataset_folder
+    #           |______class1
+    #           |______class2
+    #           .
+    #           .
+    #           |______class11
+    #       TODO: Later, all images will be put into one folder, with a separate label file.
+    def __init__(self, dataset_path, transform=None):
+        self.imgs = []
+        self.labels = []
         self.transform = transform
+        path = Path(dataset_path).expanduser().absolute()
+        # the dataset_path should be a directory
+        assert path.is_dir()
+        # add all imgs to the imgs attribute
+        for class_path in path.iterdir():
+            if class_path.is_dir():
+                # map the class name to its index
+                if class_path.name not in FOLDER_ALIAS:
+                    truth = CLASSES.index(class_path.name)
+                else:
+                    truth = CLASSES.index(FOLDER_ALIAS[class_path.name])
+                subdirectory_imgs = process_multiple(class_path)
+                self.imgs.extend(subdirectory_imgs)
+                self.labels.extend([truth] * len(subdirectory_imgs))
+        self.imgs = np.array(self.imgs)
+        self.labels = np.array(self.labels)
 
     def __len__(self):
-        return self.imgs.shape[0]
+        return len(self.labels)
     
     def __getitem__(self, idx):
         img = self.imgs[idx]
+        label = self.labels[idx]
         if self.transform:
             img = self.transform(img)
-        return img
+        return img, label
 
 
-def predict_single(model, img, device):
+def predict_single(model, img):
     # assume single image input with shape (3, 32, 32)
     assert isinstance(img, torch.Tensor) and img.shape == (3, 32, 32)
     # NOTE: make sure model is in validation mode
     model.eval()
-    prob = model(img.unsqueeze(0).to(device))[0]
-    pred_labels = CLASSES[torch.argmax(prob)]
-    # print(f"Predicted label is: {classes[torch.argmax(prob)]}")
-    return pred_labels, torch.nn.functional.softmax(prob, dim=0).cpu().detach().numpy()
+    prob = model(img.unsqueeze(0))[0]
+    pred = torch.argmax(prob)
+    return pred, torch.nn.functional.softmax(prob, dim=0).cpu().detach().numpy()
 
 
-def predict_multiple(model, imgs, device):
+def predict_multiple(model, imgs):
     # assume multiple image inputs with shape (N, 3, 32, 32) where N is the batch size
     assert isinstance(imgs, torch.Tensor) and imgs.shape[1:] == (3, 32, 32)
     # NOTE: make sure model is in validation mode
     model.eval()
-    prob = model(imgs.to(device))
+    prob = model(imgs)
     pred = prob.argmax(dim=1, keepdim=True)
-    pred_labels = [CLASSES[idx] for idx in pred]
-    # print(f"Predicted labels are: {[classes[idx] for idx in pred]}")
-    return pred_labels, torch.nn.functional.softmax(prob, dim=1).cpu().detach().numpy()
+    return pred, torch.nn.functional.softmax(prob, dim=1).cpu().detach().numpy()
 
 
-def dataset_acc(dataset_path, model, device, verbose):
-    total = 0
-    correct = 0
-    dataset_path = Path(dataset_path).expanduser().absolute()
-    for class_path in dataset_path.iterdir():
-        if class_path.is_dir():
-            if class_path.name not in CLASSNAME_MAPPING:
-                truth = class_path.name
-            else:
-                truth = CLASSNAME_MAPPING[class_path.name]
-            custom_set = CustomCIFAR(imgs_path=class_path, transform=transform)
-            custom_loader = torch.utils.data.DataLoader(custom_set, batch_size=len(custom_set), shuffle=False)
+def get_dataloader(dataset_path, batch_size):
+    dataset = CustomCIFAR(dataset_path=dataset_path, transform=TRANSFORM)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    return dataloader
 
-            # prediction on images in the folder
-            pred_multi, _ = predict_multiple(model=model, imgs=next(iter(custom_loader)), device=device)
-            res = np.array(list(map(lambda x: x == truth, pred_multi)))
-            if verbose:
-                print(f"Acc for {class_path.name} is: {res.sum() / len(res)}")
 
-            total += len(res)
-            correct += np.sum(res)
+def dataset_acc(dataloader, model, device):
+    total_classes = len(CLASSES)
+    total = dict(zip(range(total_classes), [0] * total_classes))
+    correct = dict(zip(range(total_classes), [0] * total_classes))
+
+    # prediction on images in the folder
+    for imgs, labels in iter(dataloader):
+        imgs = imgs.to(device)
+        pred_multi, _ = predict_multiple(model=model, imgs=imgs)
+        for i in range(len(labels)):
+            total[int(labels[i])] += 1
+            if pred_multi[i] == labels[i]:
+                correct[int(labels[i])] += 1
         
-    return correct / total
+    return correct, total
+
+
+def get_accuracy(correct, total, label):
+    # get the accuracy of classification for one label
+    idx = CLASSES.index(label)
+    return correct[idx] / total[idx]

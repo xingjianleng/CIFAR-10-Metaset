@@ -11,3 +11,9 @@
 # IDE files
 **/.vscode
 **/.idea
+**/.ipynb_checkpoints
+
+# pickle file for specific datasets
+/model/acc_stats
+/model/fd_stats.npy
+/model/dataloaders

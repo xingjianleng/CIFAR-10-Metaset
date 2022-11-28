@@ -1,16 +1,16 @@
+# Calculate FD between datasets. Original code is from
+# https://github.com/Simon4Yan/Meta-set/blob/58e498cc95a879eec369d2ccf8da714baf8480e2/FD/many_fd.py
 import sys
 
 import numpy as np
-import torch
 from scipy import linalg
-from torchvision import transforms
 
 
 sys.path.append(".")
 
 
-def get_activations(files, model, batch_size=50, dims=2048,
-                    cuda=False, overlap=False, verbose=False):
+def get_activations(dataloader, model, dims=64,
+                    cuda=False, verbose=False):
     """Calculates the activations of the pool_3 layer for all images.
     Params:
     -- files       : List of image files paths
@@ -29,30 +29,13 @@ def get_activations(files, model, batch_size=50, dims=2048,
         activations of the given tensor when feeding inception with the
         query tensor.
     """
-
-    if overlap:
-        files = './dataset_bg/' + files
-        test_loader = torch.utils.data.DataLoader(
-            MNIST(files, 'test_data.npy', 'test_label.npy', transform=transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize((0.5,), (0.5,))  # transforms.Normalize((0.1307,), (0.3081,))
-            ])),
-            batch_size=batch_size, shuffle=False, drop_last=True)
-    else:
-        files = './dataset/mnist'
-        test_loader = torch.utils.data.DataLoader(
-            MNIST(files, 'test_data.npy', 'test_label.npy', transform=transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize((0.5,), (0.5,))  # transforms.Normalize((0.1307,), (0.3081,))
-            ])),
-            batch_size=batch_size, shuffle=False, drop_last=True)
-
-    n_batches = len(test_loader.dataset) // batch_size
-    n_used_imgs = n_batches * batch_size
+    batch_size = dataloader.batch_size
+    n_used_imgs = len(dataloader.dataset)
+    n_batches = n_used_imgs // batch_size
 
     pred_arr = np.empty((n_used_imgs, dims))
 
-    for i, data in enumerate(test_loader):
+    for i, data in enumerate(dataloader):
         if verbose:
             print('\rPropagating batch %d/%d' % (i + 1, n_batches),
                     end='', flush=True)
@@ -65,8 +48,7 @@ def get_activations(files, model, batch_size=50, dims=2048,
             batch = batch.cuda()
 
         pred = model(batch)
-
-        pred_arr[start:end] = pred.cpu().data.numpy().reshape(batch_size, -1)
+        pred_arr[start:end] = pred.cpu().data.numpy().reshape(batch.shape[0], -1)
 
     if verbose:
         print('Done')
