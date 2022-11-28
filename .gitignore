@@ -1,3 +1,13 @@
+# large image files
 /data
 /test_data
+
+# python interpreter cache
 **/__pycache__
+
+# MacOS generated files
+**/.DS_Store
+
+# IDE files
+**/.vscode
+**/.idea
