@@ -1,7 +1,6 @@
 # Based on (heavily modified) the implementation from
 # https://github.com/yueatsprograms/ttt_cifar_release/blob/acac817fb7615850d19a8f8e79930240c9afe8b5/models/ResNet.py
 
-import math
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -81,11 +80,11 @@ class ResNetCifar(nn.Module):
         self.avgpool = nn.AvgPool2d(8)
         self.fc = nn.Linear(64, classes)
 
-        # Initialization
+        # initialization
         for m in self.modules():
+            # kaiming initialization at https://arxiv.org/abs/1502.01852
             if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
                 
     def _make_layer(self, planes, stride=1):
         downsample = None
