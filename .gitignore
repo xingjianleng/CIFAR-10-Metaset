@@ -14,6 +14,6 @@
 **/.ipynb_checkpoints
 
 # pickle file for specific datasets
-/model/acc_stats
+/model/acc_stats.npy
 /model/fd_stats.npy
 /model/dataloaders

@@ -1,9 +1,6 @@
 # Implementation from
 # https://github.com/Simon4Yan/Meta-set/blob/58e498cc95a879eec369d2ccf8da714baf8480e2/learn/train.py
 
-import argparse
-import sys
-sys.path.append(".")
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -13,6 +10,7 @@ from torchvision import transforms
 import numpy as np
 from sklearn.model_selection import train_test_split
 
+import argparse
 import copy
 import pickle
 from model import ResNetCifar
@@ -26,7 +24,7 @@ class CIFARDataset(Dataset):
 
     def __len__(self):
         return len(self.labels)
-    
+
     def __getitem__(self, idx):
         image = self.images[idx]
         label = self.labels[idx]
@@ -46,7 +44,6 @@ def load_data(root):
     # image data is stored as N * W * H * C
     # 50000 training data, 10000 testing data
     train_x, train_y = np.zeros((50000, 32, 32, 3), dtype=np.uint8), []
-    test_y = []
 
     # extract training data
     for i in range(1, 6):
@@ -82,7 +79,7 @@ def train(args, model, device, train_loader, optimizer, epoch):
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
-                       100. * batch_idx / len(train_loader), loss.item()))
+                100. * batch_idx / len(train_loader), loss.item()))
 
 
 def test(model, device, test_loader):
@@ -102,7 +99,7 @@ def test(model, device, test_loader):
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
-    
+
     # return the validation/test accuracy
     return correct / len(test_loader.dataset)
 
@@ -144,8 +141,8 @@ def main():
     ])
 
     transform_test = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
 
     # extract data and load to dataset
@@ -189,8 +186,8 @@ def main():
             best_model = copy.deepcopy(model.state_dict())
             best_val_acc = new_val_acc
         scheduler.step()
-    
-    # load the best state_dict and test on test setc
+
+    # load the best state_dict and test on test set
     model.load_state_dict(best_model)
     test(model, device, test_loader)
 

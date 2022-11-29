@@ -5,16 +5,27 @@ import math
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torchvision.models.resnet import conv3x3
+
+
+def conv3x3(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
+    """3x3 convolution with padding"""
+    return nn.Conv2d(
+        in_planes,
+        out_planes,
+        kernel_size=3,
+        padding=1,
+        stride=stride,
+        bias=False,
+    )
 
 
 class BasicBlock(nn.Module):
-    def __init__(self, inplanes, planes, stride=1, downsample=None):
+    def __init__(self, in_planes, planes, stride=1, downsample=None):
         super(BasicBlock, self).__init__()
         self.downsample = downsample
         self.stride = stride
         
-        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.conv1 = conv3x3(in_planes, planes, stride)
         self.bn1 = nn.BatchNorm2d(num_features=planes)
         
         self.conv2 = conv3x3(planes, planes)
@@ -35,19 +46,19 @@ class BasicBlock(nn.Module):
             x = self.downsample(x)
         
         # NOTE: In original implementation, ReLU was called for the residual output.
-        #       However, in ther paper ReLU was used for (x + residual)
+        #       However, in their paper ReLU was used for (x + residual)
         return F.relu(x + residual)
 
 
 class Downsample(nn.Module):
-    def __init__(self, nIn, nOut, stride):
+    def __init__(self, in_planes, out_planes, stride):
         super(Downsample, self).__init__()
         # NOTE: It was wrong in the original implementation that the
         #       size of AvgPool kernel size equals stride. 
         #       Rather, it should be constantly 1 as shown in FaceBook implementation
         self.avg = nn.AvgPool2d(kernel_size=1, stride=stride)
-        assert nOut % nIn == 0
-        self.expand_ratio = nOut // nIn
+        assert out_planes % in_planes == 0
+        self.expand_ratio = out_planes // in_planes
 
     def forward(self, x):
         x = self.avg(x)
@@ -63,7 +74,7 @@ class ResNetCifar(nn.Module):
 
         self.conv1 = nn.Conv2d(channels, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn = nn.BatchNorm2d(num_features=16)
-        self.inplanes = 16
+        self.in_planes = 16
         self.layer1 = self._make_layer(16, stride=1)
         self.layer2 = self._make_layer(32, stride=2)
         self.layer3 = self._make_layer(64, stride=2)
@@ -78,16 +89,16 @@ class ResNetCifar(nn.Module):
                 
     def _make_layer(self, planes, stride=1):
         downsample = None
-        if stride != 1 or self.inplanes != planes:
-            downsample = Downsample(self.inplanes, planes, stride)
-        layers = [BasicBlock(self.inplanes, planes, stride, downsample)]
-        self.inplanes = planes
+        if stride != 1 or self.in_planes != planes:
+            downsample = Downsample(self.in_planes, planes, stride)
+        layers = [BasicBlock(self.in_planes, planes, stride, downsample)]
+        self.in_planes = planes
         for _ in range(self.N - 1):
-            layers.append(BasicBlock(self.inplanes, planes))
+            layers.append(BasicBlock(self.in_planes, planes))
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        # NOTE: It was wrong in the implementation that BatchNorm and ReLU were put afte all layers
+        # NOTE: It was wrong in the implementation that BatchNorm and ReLU were put after all layers
         x = self.conv1(x)
         x = self.bn(x)
         x = F.relu(x)

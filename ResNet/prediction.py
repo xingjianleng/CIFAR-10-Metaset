@@ -2,9 +2,9 @@
 import cv2
 import torch
 import numpy as np
-import torchvision.transforms as T
+from torchvision import transforms
+from torch.utils.data import DataLoader, Dataset
 from pathlib import Path
-
 
 CLASSES = (
     "airplane",
@@ -20,14 +20,13 @@ CLASSES = (
 )
 
 FOLDER_ALIAS = {
-    "sedans": "automobile",
-    "suvs": "automobile",
-    "trucks": "truck",
+    "sedan": "automobile",
+    "suv": "automobile",
 }
 
-TRANSFORM = T.Compose([
-    T.ToTensor(),
-    T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+TRANSFORM = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 
 
@@ -48,7 +47,25 @@ def process_multiple(imgs_path):
     return rtn
 
 
-class CustomCIFAR(torch.utils.data.Dataset):
+class CIFAR101(Dataset):
+    def __init__(self, dataset_path, transform=None):
+        self.imgs = np.load(f"{dataset_path}/cifar10.1_v6_data.npy")
+        # default labels are int32, convert to int64
+        self.labels = np.load(f"{dataset_path}/cifar10.1_v6_labels.npy").astype(dtype=np.int64)
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        img = self.imgs[idx]
+        label = self.labels[idx]
+        if self.transform:
+            img = self.transform(img)
+        return img, label
+
+
+class CustomCIFAR(Dataset):
     # Custom Dataset class for new CIFAR test set
     # NOTE: This Dataset class is subjected to change, current implementation require
     #       the following file structure.
@@ -82,7 +99,7 @@ class CustomCIFAR(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.labels)
-    
+
     def __getitem__(self, idx):
         img = self.imgs[idx]
         label = self.labels[idx]
@@ -113,7 +130,7 @@ def predict_multiple(model, imgs):
 
 def get_dataloader(dataset_path, batch_size):
     dataset = CustomCIFAR(dataset_path=dataset_path, transform=TRANSFORM)
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     return dataloader
 
 
@@ -130,7 +147,7 @@ def dataset_acc(dataloader, model, device):
             total[int(labels[i])] += 1
             if pred_multi[i] == labels[i]:
                 correct[int(labels[i])] += 1
-        
+
     return correct, total
 
 

@@ -1,12 +1,8 @@
 # Calculate FD between datasets. Original code is from
 # https://github.com/Simon4Yan/Meta-set/blob/58e498cc95a879eec369d2ccf8da714baf8480e2/FD/many_fd.py
-import sys
 
 import numpy as np
 from scipy import linalg
-
-
-sys.path.append(".")
 
 
 def get_activations(dataloader, model, dims=64,
@@ -37,8 +33,9 @@ def get_activations(dataloader, model, dims=64,
 
     for i, data in enumerate(dataloader):
         if verbose:
-            print('\rPropagating batch %d/%d' % (i + 1, n_batches),
-                    end='', flush=True)
+            print(
+                '\rPropagating batch %d/%d' % (i + 1, n_batches), end='', flush=True
+            )
         start = i * batch_size
         end = start + batch_size
 
@@ -58,7 +55,7 @@ def get_activations(dataloader, model, dims=64,
 
 def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     """Numpy implementation of the Frechet Distance.
-    The Frechet distance between two multivariate Gaussians X_1 ~ N(mu_1, C_1)
+    The Frechet distance between two multivariate Gaussian X_1 ~ N(mu_1, C_1)
     and X_2 ~ N(mu_2, C_2) is
             d^2 = ||mu_1 - mu_2||^2 + Tr(C_1 + C_2 - 2*sqrt(C_1*C_2)).
     Stable version by Dougal J. Sutherland.
@@ -66,10 +63,10 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     -- mu1   : Numpy array containing the activations of a layer of the
                 inception net (like returned by the function 'get_predictions')
                 for generated samples.
-    -- mu2   : The sample mean over activations, precalculated on an
+    -- mu2   : The sample mean over activations, precalculated on a
                 representative data set.
     -- sigma1: The covariance matrix over activations for generated samples.
-    -- sigma2: The covariance matrix over activations, precalculated on an
+    -- sigma2: The covariance matrix over activations, precalculated on a
                 representative data set.
     Returns:
     --   : The Frechet Distance.
@@ -91,8 +88,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     # Product might be almost singular
     covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
     if not np.isfinite(covmean).all():
-        msg = ('fid calculation produces singular product; '
-                'adding %s to diagonal of cov estimates') % eps
+        msg = 'fid calculation produces singular product; ''adding %s to diagonal of cov estimates' % eps
         print(msg)
         offset = np.eye(sigma1.shape[0]) * eps
         covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
