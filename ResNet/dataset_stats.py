@@ -31,12 +31,12 @@ if path_acc.exists() and path_acc.is_file():
 if path_fd.exists() and path_fd.is_file():
     fd_stats = np.load(str(path_fd))
 
-if not acc_stats or fd_stats is None:
+if acc_stats is None or fd_stats is None:
     # load datasets
     dataset_paths = [f"~/Downloads/dataset/F-{i}" for i in range(8, 16)]
     dataloaders = [get_dataloader(dataset_path, batch_size) for dataset_path in dataset_paths]
 
-    if not acc_stats:
+    if acc_stats is None:
         dataset_stats = [dataset_acc(dataloader, model, device) for dataloader in dataloaders]
         # Row -> Dataset, Col -> Accuracy for each class and the overall accuracy
         acc_stats = np.zeros((len(dataset_paths), len(CLASSES) + 1))
