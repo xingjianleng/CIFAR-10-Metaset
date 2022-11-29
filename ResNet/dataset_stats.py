@@ -1,5 +1,5 @@
 from model import ResNetCifar
-from prediction import dataset_acc, get_dataloader, TRANSFORM, CLASSES
+from utils import dataset_acc, get_dataloader, TRANSFORM, CLASSES
 from fd import get_activations, calculate_frechet_distance
 from pathlib import Path
 

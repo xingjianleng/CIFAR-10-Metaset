@@ -1,4 +1,4 @@
-from prediction import CIFAR101, TRANSFORM
+from utils import CIFAR101, TRANSFORM
 from train import test
 from model import ResNetCifar
 
