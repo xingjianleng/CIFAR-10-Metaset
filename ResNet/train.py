@@ -1,6 +1,5 @@
 # Implementation from
 # https://github.com/Simon4Yan/Meta-set/blob/58e498cc95a879eec369d2ccf8da714baf8480e2/learn/train.py
-
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -13,7 +12,7 @@ from sklearn.model_selection import train_test_split
 import argparse
 import copy
 import pickle
-from model import ResNetCifar
+from ResNet.model import ResNetCifar
 
 
 class CIFARDataset(Dataset):

@@ -1,6 +1,6 @@
 from utils import CIFAR101, TRANSFORM
 from train import test
-from model import ResNetCifar
+from ResNet.model import ResNetCifar
 
 import torch
 from torch.utils.data import DataLoader
