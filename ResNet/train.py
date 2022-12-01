@@ -145,7 +145,7 @@ def main():
     ])
 
     # extract data and load to dataset
-    train_x, val_x, test_x, train_y, val_y, test_y = load_data("../data/cifar-10-batches-py")
+    train_x, val_x, test_x, train_y, val_y, test_y = load_data("data/cifar-10-batches-py")
     train_set = CIFARDataset(train_x, train_y, transform_train)
     val_set = CIFARDataset(val_x, val_y, transform_test)
     test_set = CIFARDataset(test_x, test_y, transform_test)
@@ -191,7 +191,7 @@ def main():
     test(model, device, test_loader)
 
     if args.save_model:
-        torch.save(best_model, f"../model/resnet110-{args.epochs}.pt")
+        torch.save(best_model, f"model/resnet110-{args.epochs}.pt")
 
 
 if __name__ == '__main__':

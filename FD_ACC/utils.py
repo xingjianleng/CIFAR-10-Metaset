@@ -48,36 +48,12 @@ def process_multiple(imgs_path):
 
 
 class CustomCIFAR(Dataset):
-    # Custom Dataset class for new CIFAR test set
-    # NOTE: This Dataset class is subjected to change, current implementation require
-    #       the following file structure.
-    #       dataset_folder
-    #           |______class1
-    #           |______class2
-    #           .
-    #           .
-    #           |______class11
-    #       TODO: Later, all images will be put into one folder, with a separate label file.
-    def __init__(self, dataset_path, transform=None):
-        self.imgs = []
-        self.labels = []
+    def __init__(self, data_path, label_path, transform=None):
+        # data_path and label_path are assumed to be ndarray objects
+        self.imgs = np.load(data_path)
+        # cast to int64 for model prediction
+        self.labels = np.load(label_path).astype(dtype=np.int64)
         self.transform = transform
-        path = Path(dataset_path).expanduser().absolute()
-        # the dataset_path should be a directory
-        assert path.is_dir()
-        # add all imgs to the imgs attribute
-        for class_path in path.iterdir():
-            if class_path.is_dir():
-                # map the class name to its index
-                if class_path.name not in FOLDER_ALIAS:
-                    truth = CLASSES.index(class_path.name)
-                else:
-                    truth = CLASSES.index(FOLDER_ALIAS[class_path.name])
-                subdirectory_imgs = process_multiple(class_path)
-                self.imgs.extend(subdirectory_imgs)
-                self.labels.extend([truth] * len(subdirectory_imgs))
-        self.imgs = np.array(self.imgs)
-        self.labels = np.array(self.labels)
 
     def __len__(self):
         return len(self.labels)

@@ -1,6 +1,6 @@
-from utils import CIFAR101, TRANSFORM
-from train import test
+from ResNet.train import test
 from ResNet.model import ResNetCifar
+from FD_ACC.utils import CustomCIFAR, TRANSFORM
 
 import torch
 from torch.utils.data import DataLoader
@@ -11,9 +11,13 @@ def main():
     kwargs = {'num_workers': 1, 'pin_memory': True} if device == "cuda" else {}
 
     model = ResNetCifar(depth=110).to(device)
-    model.load_state_dict(torch.load("../model/resnet110-180-9321.pt", map_location=torch.device(device)))
+    model.load_state_dict(torch.load("model/resnet110-180-9321.pt", map_location=torch.device(device)))
 
-    dataset = CIFAR101("../data/cifar-10.1", TRANSFORM)
+    dataset = CustomCIFAR(
+        "data/cifar-10.1/cifar10.1_v6_data.npy",
+        "data/cifar-10.1/cifar10.1_v6_labels.npy",
+        TRANSFORM,
+    )
     test_loader = DataLoader(
         dataset,
         batch_size=1000,
