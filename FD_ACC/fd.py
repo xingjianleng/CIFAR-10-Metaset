@@ -242,10 +242,10 @@ def cifar_f_main():
 
 def custom_cifar_main():
     # NOTE: change accordingly
-    candidates = ("F-8", "F-11")
-    path_fd = "dataset_FD/custom_cifar.npy"
+    candidates = ("F-8_0", "F-8_1", "F-8_2", "F-8_3", "F-11_0")
+    path_fd = "dataset_FD/custom_cifar_sampled.npy"
     fd_values = np.zeros(len(candidates))
-    feat_path = 'dataset_feature/custom-cifar/'
+    feat_path = 'dataset_feature/custom-cifar-sampled/'
     m1, s1, act1 = get_cifar_test_feat()
 
     try:
@@ -254,8 +254,8 @@ def custom_cifar_main():
         pass
 
     for i, candidate in enumerate(candidates):
-        data_path = f"data/custom_processed/{candidate}/data.npy"
-        label_path = f"data/custom_processed/{candidate}/labels.npy"
+        data_path = f"data/custom_sampled/{candidate}/data.npy"
+        label_path = f"data/custom_sampled/{candidate}/labels.npy"
 
         test_loader = DataLoader(
             dataset=CustomCIFAR(

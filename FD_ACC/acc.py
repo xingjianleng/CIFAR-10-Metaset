@@ -19,13 +19,13 @@ model.eval()
 
 def custom_cifar_main():
     # NOTE: change accordingly
-    candidates = ("F-8", "F-11")
-    path_acc = "dataset_ACC/custom_cifar.npy"
+    candidates = ("F-8_0", "F-8_1", "F-8_2", "F-8_3", "F-11_0")
+    path_acc = "dataset_ACC/custom_cifar_sampled.npy"
     acc_stats = np.zeros(len(candidates))
 
     for i, candidate in enumerate(candidates):
-        data_path = f"data/custom_processed/{candidate}/data.npy"
-        label_path = f"data/custom_processed/{candidate}/labels.npy"
+        data_path = f"data/custom_sampled/{candidate}/data.npy"
+        label_path = f"data/custom_sampled/{candidate}/labels.npy"
 
         test_loader = DataLoader(
             dataset=CustomCIFAR(

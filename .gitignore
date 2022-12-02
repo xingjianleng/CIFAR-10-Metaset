@@ -1,6 +1,8 @@
 # large image files
-/data
-/test_data
+data/
+
+# temporary working folder
+working/
 
 # python interpreter cache
 **/__pycache__
@@ -14,7 +16,7 @@
 **/.ipynb_checkpoints
 
 # pickle file for specific datasets
-/model/dataloaders
-/dataset_FD
-/dataset_ACC
-/dataset_feature
+model/dataloaders/
+dataset_FD/
+dataset_ACC/
+dataset_feature/
