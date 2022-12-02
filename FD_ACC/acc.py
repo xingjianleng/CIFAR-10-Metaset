@@ -2,7 +2,7 @@ import os
 from ResNet.model import ResNetCifar
 from FD_ACC.utils import dataset_acc, TRANSFORM, CIFAR10F, CustomCIFAR
 
-from tqdm import trange
+from tqdm import trange, tqdm
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
@@ -19,13 +19,20 @@ model.eval()
 
 def custom_cifar_main():
     # NOTE: change accordingly
-    candidates = ("F-8_0", "F-8_1", "F-8_2", "F-8_3", "F-11_0")
-    path_acc = "dataset_ACC/custom_cifar_sampled.npy"
+    base_dir = "data/correct_wrong/"
+    candidates = sorted(os.listdir(base_dir))
+
+    try:
+        candidates.remove(".DS_Store")
+    except ValueError:
+        pass
+
+    path_acc = "dataset_ACC/correct_wrong.npy"
     acc_stats = np.zeros(len(candidates))
 
-    for i, candidate in enumerate(candidates):
-        data_path = f"data/custom_sampled/{candidate}/data.npy"
-        label_path = f"data/custom_sampled/{candidate}/labels.npy"
+    for i, candidate in enumerate(tqdm(candidates)):
+        data_path = base_dir + f"{candidate}/data.npy"
+        label_path = base_dir + f"{candidate}/labels.npy"
 
         test_loader = DataLoader(
             dataset=CustomCIFAR(
@@ -52,6 +59,12 @@ def cifar_f_main():
     except ValueError:
         pass
 
+    # NOTE: the "11" dataset have wrong labels, skip this dataset
+    try:
+        test_dirs.remove("11")
+    except ValueError:
+        pass
+
     path_acc = "dataset_ACC/cifar10-f.npy"
     acc_stats = np.zeros(len(test_dirs))
 
@@ -72,5 +85,5 @@ def cifar_f_main():
 
 
 if __name__ == "__main__":
-    # cifar_f_main()
-    custom_cifar_main()
+    cifar_f_main()
+    # custom_cifar_main()

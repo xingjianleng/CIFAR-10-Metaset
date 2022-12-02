@@ -9,7 +9,7 @@ import torch
 from torch.utils.data import DataLoader
 import torchvision
 import numpy as np
-from tqdm import trange
+from tqdm import trange, tqdm
 from scipy import linalg
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
@@ -193,6 +193,56 @@ def get_cifar_test_feat():
     return m1, s1, act1
 
 
+def custom_cifar_main():
+    # NOTE: change accordingly, may use os.listdir() method
+    base_dir = "data/correct_wrong/"
+    candidates = sorted(os.listdir(base_dir))
+
+    try:
+        candidates.remove(".DS_Store")
+    except ValueError:
+        pass
+
+    path_fd = "dataset_FD/correct_wrong.npy"
+    fd_values = np.zeros(len(candidates))
+    feat_path = 'dataset_feature/correct_wrong/'
+    m1, s1, act1 = get_cifar_test_feat()
+
+    try:
+        os.makedirs(feat_path)
+    except FileExistsError:
+        pass
+
+    for i, candidate in enumerate(tqdm(candidates)):
+        data_path = base_dir + f"{candidate}/data.npy"
+        label_path = base_dir + f"{candidate}/labels.npy"
+
+        test_loader = DataLoader(
+            dataset=CustomCIFAR(
+                data_path=data_path,
+                label_path=label_path,
+                transform=TRANSFORM,
+            ),
+            batch_size=batch_size,
+            shuffle=False
+        )
+        m2, s2, act2 = calculate_activation_statistics(
+            test_loader,
+            model,
+            dims,
+            use_cuda,
+            verbose=False
+        )
+        fd_value = calculate_frechet_distance(m1, s1, m2, s2)
+        fd_values[i] = fd_value
+
+        # saving features for nn regression
+        np.save(feat_path + '%s_mean' % candidate, m2)
+        np.save(feat_path + '%s_variance' % candidate, s2)
+        np.save(feat_path + '%s_feature' % candidate, act2)
+    np.save(path_fd, fd_values)
+
+
 def cifar_f_main():
     base_dir = 'data/cifar10-f'
     test_dirs = sorted(os.listdir(base_dir))
@@ -204,6 +254,11 @@ def cifar_f_main():
     try:
         # skip the .DS_Store in macOS
         test_dirs.remove(".DS_Store")
+    except ValueError:
+        pass
+    # NOTE: the "11" dataset have wrong labels, skip this dataset
+    try:
+        test_dirs.remove("11")
     except ValueError:
         pass
 
@@ -230,7 +285,6 @@ def cifar_f_main():
             )
 
             fd_value = calculate_frechet_distance(m1, s1, m2, s2)
-            print('FD: ', fd_value)
             fd_values[i] = fd_value
 
             # saving features for nn regression
@@ -240,50 +294,6 @@ def cifar_f_main():
         np.save('dataset_FD/cifar10-f.npy', fd_values)
 
 
-def custom_cifar_main():
-    # NOTE: change accordingly
-    candidates = ("F-8_0", "F-8_1", "F-8_2", "F-8_3", "F-11_0")
-    path_fd = "dataset_FD/custom_cifar_sampled.npy"
-    fd_values = np.zeros(len(candidates))
-    feat_path = 'dataset_feature/custom-cifar-sampled/'
-    m1, s1, act1 = get_cifar_test_feat()
-
-    try:
-        os.makedirs(feat_path)
-    except FileExistsError:
-        pass
-
-    for i, candidate in enumerate(candidates):
-        data_path = f"data/custom_sampled/{candidate}/data.npy"
-        label_path = f"data/custom_sampled/{candidate}/labels.npy"
-
-        test_loader = DataLoader(
-            dataset=CustomCIFAR(
-                data_path=data_path,
-                label_path=label_path,
-                transform=TRANSFORM,
-            ),
-            batch_size=batch_size,
-            shuffle=False
-        )
-        m2, s2, act2 = calculate_activation_statistics(
-            test_loader,
-            model,
-            dims,
-            use_cuda,
-            verbose=False
-        )
-        fd_value = calculate_frechet_distance(m1, s1, m2, s2)
-        print('FD: ', fd_value)
-        fd_values[i] = fd_value
-
-        # saving features for nn regression
-        np.save(feat_path + '%s_mean' % candidate, m2)
-        np.save(feat_path + '%s_variance' % candidate, s2)
-        np.save(feat_path + '%s_feature' % candidate, act2)
-    np.save(path_fd, fd_values)
-
-
 if __name__ == '__main__':
-    # cifar_f_main()
-    custom_cifar_main()
+    cifar_f_main()
+    # custom_cifar_main()
