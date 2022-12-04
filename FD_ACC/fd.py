@@ -195,7 +195,7 @@ def get_cifar_test_feat():
 
 def custom_cifar_main():
     # NOTE: change accordingly, may use os.listdir() method
-    base_dir = "data/correct_wrong/"
+    base_dir = "data/custom_processed/"
     candidates = sorted(os.listdir(base_dir))
 
     try:
@@ -203,9 +203,9 @@ def custom_cifar_main():
     except ValueError:
         pass
 
-    path_fd = "dataset_FD/correct_wrong.npy"
+    path_fd = "dataset_FD/custom_cifar.npy"
     fd_values = np.zeros(len(candidates))
-    feat_path = 'dataset_feature/correct_wrong/'
+    feat_path = 'dataset_feature/custom_cifar/'
     m1, s1, act1 = get_cifar_test_feat()
 
     try:
@@ -295,5 +295,5 @@ def cifar_f_main():
 
 
 if __name__ == '__main__':
-    cifar_f_main()
-    # custom_cifar_main()
+    # cifar_f_main()
+    custom_cifar_main()

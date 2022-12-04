@@ -19,7 +19,7 @@ model.eval()
 
 def custom_cifar_main():
     # NOTE: change accordingly
-    base_dir = "data/correct_wrong/"
+    base_dir = "data/custom_processed/"
     candidates = sorted(os.listdir(base_dir))
 
     try:
@@ -27,7 +27,7 @@ def custom_cifar_main():
     except ValueError:
         pass
 
-    path_acc = "dataset_ACC/correct_wrong.npy"
+    path_acc = "dataset_ACC/custom_cifar.npy"
     acc_stats = np.zeros(len(candidates))
 
     for i, candidate in enumerate(tqdm(candidates)):
@@ -85,5 +85,5 @@ def cifar_f_main():
 
 
 if __name__ == "__main__":
-    cifar_f_main()
-    # custom_cifar_main()
+    # cifar_f_main()
+    custom_cifar_main()
