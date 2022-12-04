@@ -12,6 +12,9 @@ def save_as_array(src: Path, dst: Path):
     imgs = []
     labels = []
 
+    # make directory for the destination
+    dst.mkdir(exist_ok=True)
+
     for sub_folder in src.iterdir():
         if sub_folder.name != ".DS_Store":
             folder_imgs = process_multiple(imgs_path=sub_folder)
@@ -51,8 +54,8 @@ def sample(data: np.ndarray, labels: np.ndarray, dst: str):
 
 
 def process_main():
-    dataset_name = "F-9"
-    src = Path(f"~/Downloads/labelled/{dataset_name}").expanduser().absolute()
+    dataset_name = "B_11"
+    src = Path(f"~/Downloads/Clean5Set/{dataset_name}").expanduser().absolute()
     dst = Path(f"data/custom_processed/{dataset_name}").expanduser().absolute()
     save_as_array(src=src, dst=dst)
 

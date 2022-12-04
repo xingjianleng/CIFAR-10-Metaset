@@ -1,6 +1,7 @@
 import cv2
 import torch
 import numpy as np
+from PIL import Image
 from torchvision import transforms
 from torch.utils.data import Dataset
 from pathlib import Path
@@ -32,7 +33,20 @@ TRANSFORM = transforms.Compose([
 def process_single(img_path):
     # reshape image to 32x32, convert to RGB color space
     # the resize process could be very slow
-    return cv2.cvtColor(cv2.resize(cv2.imread(img_path), (32, 32)), cv2.COLOR_BGR2RGB)
+    # As some images are encoded in RGBA, we enforce each image to be in RGBA
+    # and drop the last channel
+    img = Image.open(img_path)
+    if img.mode == "P":
+        # if the image is in mode P, convert to RGBA image
+        img = img.convert("RGBA")
+    elif img.mode != "RGB":
+        img = img.convert("RGB")
+    img_arr = np.asarray(img)
+    if len(img_arr.shape) < 3:
+        print(img_path)
+    if img.mode == "RGBA":
+        img_arr = img_arr[:, :, :3]
+    return cv2.resize(img_arr, (32, 32))
 
 
 def process_multiple(imgs_path):
