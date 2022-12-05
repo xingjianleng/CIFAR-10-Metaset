@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 
 # determine the device to use
 device = "cuda" if torch.cuda.is_available() else "cpu"
-batch_size = 1000
+batch_size = 500
 
 # load the model and change to evaluation mode
 model = ResNetCifar(depth=110).to(device)
@@ -19,7 +19,7 @@ model.eval()
 
 def custom_cifar_main():
     # NOTE: change accordingly
-    base_dir = "data/custom_processed/"
+    base_dir = "data/CIFAR-10-C/"
     candidates = sorted(os.listdir(base_dir))
 
     try:
@@ -27,11 +27,11 @@ def custom_cifar_main():
     except ValueError:
         pass
 
-    path_acc = "dataset_ACC/custom_cifar.npy"
+    path_acc = "dataset_ACC/cifar10-c.npy"
     acc_stats = np.zeros(len(candidates))
 
     for i, candidate in enumerate(tqdm(candidates)):
-        data_path = base_dir + f"{candidate}/data.npy"
+        data_path = base_dir + f"{candidate}/{candidate}.npy"
         label_path = base_dir + f"{candidate}/labels.npy"
 
         test_loader = DataLoader(

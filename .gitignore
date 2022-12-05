@@ -15,6 +15,9 @@ working/
 **/.idea
 **/.ipynb_checkpoints
 
+# The plot
+acc_fd.png
+
 # pickle file for specific datasets
 model/dataloaders/
 dataset_FD/

@@ -20,7 +20,7 @@ args = parser.parse_args()
 
 # dimension of the feature
 dims = 64
-batch_size = 1000
+batch_size = 500
 use_cuda = args.gpu and torch.cuda.is_available()
 
 model = ResNetCifar(depth=110)
@@ -195,7 +195,7 @@ def get_cifar_test_feat():
 
 def custom_cifar_main():
     # NOTE: change accordingly, may use os.listdir() method
-    base_dir = "data/custom_processed/"
+    base_dir = "data/CIFAR-10-C/"
     candidates = sorted(os.listdir(base_dir))
 
     try:
@@ -203,9 +203,9 @@ def custom_cifar_main():
     except ValueError:
         pass
 
-    path_fd = "dataset_FD/custom_cifar.npy"
+    path_fd = "dataset_FD/cifar10-c.npy"
     fd_values = np.zeros(len(candidates))
-    feat_path = 'dataset_feature/custom_cifar/'
+    feat_path = 'dataset_feature/cifar10-c/'
     m1, s1, act1 = get_cifar_test_feat()
 
     try:
@@ -214,8 +214,8 @@ def custom_cifar_main():
         pass
 
     for i, candidate in enumerate(tqdm(candidates)):
-        data_path = base_dir + f"{candidate}/data.npy"
-        label_path = base_dir + f"{candidate}/labels.npy"
+        data_path = base_dir + f"{candidate}/{candidate}.npy"
+        label_path = base_dir + f"{candidate}/{candidate}.npy"
 
         test_loader = DataLoader(
             dataset=CustomCIFAR(
