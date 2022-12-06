@@ -8,7 +8,7 @@ import torch
 from torch.utils.data import DataLoader
 
 # determine the device to use
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda:1" if torch.cuda.is_available() else "cpu"
 batch_size = 500
 
 # load the model and change to evaluation mode
@@ -19,19 +19,22 @@ model.eval()
 
 def custom_cifar_main():
     # NOTE: change accordingly
-    base_dir = "data/CIFAR-10-C/"
+    # base_dir = "/home/sunxx/project/Auto_evaluation_cla/CIFAR-setup/dataset/"
+    base_dir = "data/correct_wrong/"
+    # files = sorted(os.listdir(base_dir))
     candidates = sorted(os.listdir(base_dir))
 
-    try:
-        candidates.remove(".DS_Store")
-    except ValueError:
-        pass
+    # NOTE: code for CIFAR transformed 1000
+    # candidates = []
+    # for file in files:
+    #     if file.endswith(".npy"):
+    #         candidates.append(file)
 
-    path_acc = "dataset_ACC/cifar10-c.npy"
+    path_acc = "dataset_ACC/correct_wrong.npy"
     acc_stats = np.zeros(len(candidates))
 
     for i, candidate in enumerate(tqdm(candidates)):
-        data_path = base_dir + f"{candidate}/{candidate}.npy"
+        data_path = base_dir + f"{candidate}/data.npy"
         label_path = base_dir + f"{candidate}/labels.npy"
 
         test_loader = DataLoader(
@@ -52,12 +55,6 @@ def custom_cifar_main():
 def cifar_f_main():
     base_dir = 'data/cifar10-f'
     test_dirs = sorted(os.listdir(base_dir))
-
-    try:
-        # skip the .DS_Store in macOS
-        test_dirs.remove(".DS_Store")
-    except ValueError:
-        pass
 
     # NOTE: the "11" dataset have wrong labels, skip this dataset
     try:

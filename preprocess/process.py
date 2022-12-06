@@ -1,6 +1,5 @@
 from FD_ACC.utils import process_multiple, CLASSES, FOLDER_ALIAS
 from pathlib import Path
-from collections import Counter
 
 import numpy as np
 
@@ -16,41 +15,45 @@ def save_as_array(src: Path, dst: Path):
     dst.mkdir(exist_ok=True)
 
     for sub_folder in src.iterdir():
-        if sub_folder.name != ".DS_Store":
-            folder_imgs = process_multiple(imgs_path=sub_folder)
-            imgs.extend(folder_imgs)
-            if sub_folder.name not in FOLDER_ALIAS:
-                truth = CLASSES.index(sub_folder.name)
-            else:
-                truth = CLASSES.index(FOLDER_ALIAS[sub_folder.name])
-            labels.extend([truth] * len(folder_imgs))
+        folder_imgs = process_multiple(imgs_path=sub_folder)
+        imgs.extend(folder_imgs)
+        if sub_folder.name not in FOLDER_ALIAS:
+            truth = CLASSES.index(sub_folder.name)
+        else:
+            truth = CLASSES.index(FOLDER_ALIAS[sub_folder.name])
+        labels.extend([truth] * len(folder_imgs))
 
     np.save(str(dst / "data.npy"), np.array(imgs))
     np.save(str(dst / "labels.npy"), np.array(labels))
 
 
-def sample(data: np.ndarray, labels: np.ndarray, dst: str):
-    # randomly sample the provided data.npy and labels.npy
+def sample(
+    data: np.ndarray,
+    labels: np.ndarray,
+    dst: str,
+    num_dataset: int=None,
+    dataset_size: int=1000,
+    replace=False
+):
+    # `randomly` sample the provided data.npy and labels.npy into the desired
+    # dataset_size and number of datasets
+    # NOTE: `replace` parameter only indicate whether duplicate will happen in a singe dataset
     assert len(data) == len(labels)
-    num_dataset = min(Counter(labels).values()) // 100
-    indices_each_class = []
-
-    for i in range(len(CLASSES)):
-        # NOTE: currently, we don't allow replacement
-        chosen_idx = np.random.choice(np.where(labels == i)[0], num_dataset * 100, replace=False)
-        indices_each_class.append(np.split(chosen_idx, num_dataset))
+    if num_dataset is not None:
+        num_dataset = min(num_dataset, len(labels) // dataset_size)
+    else:
+        num_dataset = len(labels) // dataset_size
 
     for i in range(num_dataset):
-        # each dataset has 100 * 10 = 1000 data
-        data_rtn = np.zeros((1000, *data.shape[1:]), dtype=data.dtype)
-        labels_rtn = np.zeros(1000, dtype=labels.dtype)
-        for j in range(len(CLASSES)):
-            sampled_data_folder = Path(dst + f"_{i}")
-            sampled_data_folder.mkdir(exist_ok=True)
-            data_rtn[100 * j: 100 * (j + 1)] = data[indices_each_class[j][i]]
-            labels_rtn[100 * j: 100 * (j + 1)] = labels[indices_each_class[j][i]]
-            np.save(str(sampled_data_folder / "data.npy"), data_rtn)
-            np.save(str(sampled_data_folder / "labels.npy"), labels_rtn)
+        sampled_data_folder = Path(dst + f"_{i}")
+        sampled_data_folder.mkdir(exist_ok=True)
+        # Chosen `size` data from input, without replacement
+        chosen_indices = np.random.choice(range(len(labels)), size=dataset_size, replace=replace)
+        data_rtn = data[chosen_indices]
+        labels_rtn = labels[chosen_indices]
+            
+        np.save(str(sampled_data_folder / "data.npy"), data_rtn)
+        np.save(str(sampled_data_folder / "labels.npy"), labels_rtn)
 
 
 def process_main():

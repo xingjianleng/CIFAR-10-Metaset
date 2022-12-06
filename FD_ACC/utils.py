@@ -110,9 +110,10 @@ def predict_single(model, img):
     assert isinstance(img, torch.Tensor) and img.shape == (3, 32, 32)
     # NOTE: make sure model is in validation mode
     model.eval()
-    prob = model(img.unsqueeze(0))[0]
-    pred = torch.argmax(prob)
-    return pred, torch.nn.functional.softmax(prob, dim=0).cpu().detach().numpy()
+    with torch.no_grad():
+        prob = model(img.unsqueeze(0))[0]
+        pred = torch.argmax(prob)
+    return pred, torch.nn.functional.softmax(prob, dim=0).cpu().numpy()
 
 
 def predict_multiple(model, imgs):
@@ -120,9 +121,10 @@ def predict_multiple(model, imgs):
     assert isinstance(imgs, torch.Tensor) and imgs.shape[1:] == (3, 32, 32)
     # NOTE: make sure model is in validation mode
     model.eval()
-    prob = model(imgs)
-    pred = prob.argmax(dim=1, keepdim=True)
-    return pred, torch.nn.functional.softmax(prob, dim=1).cpu().detach().numpy()
+    with torch.no_grad():
+        prob = model(imgs)
+        pred = prob.argmax(dim=1, keepdim=True)
+    return pred, torch.nn.functional.softmax(prob, dim=1).cpu().numpy()
 
 
 def dataset_acc(dataloader, model, device):
@@ -131,12 +133,13 @@ def dataset_acc(dataloader, model, device):
     correct = dict(zip(range(total_classes), [0] * total_classes))
 
     # prediction on images in the folder
-    for imgs, labels in iter(dataloader):
-        imgs = imgs.to(device)
-        pred_multi, _ = predict_multiple(model=model, imgs=imgs)
-        for i in range(len(labels)):
-            total[int(labels[i])] += 1
-            if pred_multi[i] == labels[i]:
-                correct[int(labels[i])] += 1
+    with torch.no_grad():
+        for imgs, labels in iter(dataloader):
+            imgs = imgs.to(device)
+            pred_multi, _ = predict_multiple(model=model, imgs=imgs)
+            for i in range(len(labels)):
+                total[int(labels[i])] += 1
+                if pred_multi[i] == labels[i]:
+                    correct[int(labels[i])] += 1
 
     return correct, total

@@ -58,21 +58,22 @@ def get_activations(dataloader, model, dims=64,
 
     pred_arr = np.empty((n_used_imgs, dims))
 
-    for i, data in enumerate(dataloader):
-        if verbose:
-            print(
-                '\rPropagating batch %d/%d' % (i + 1, n_batches), end='', flush=True
-            )
-        start = i * batch_size
-        end = start + batch_size
+    with torch.no_grad():
+        for i, data in enumerate(dataloader):
+            if verbose:
+                print(
+                    '\rPropagating batch %d/%d' % (i + 1, n_batches), end='', flush=True
+                )
+            start = i * batch_size
+            end = start + batch_size
 
-        batch, _ = data
+            batch, _ = data
 
-        if cuda:
-            batch = batch.cuda()
+            if cuda:
+                batch = batch.cuda()
 
-        pred = model(batch)
-        pred_arr[start:end] = pred.cpu().data.numpy().reshape(batch.shape[0], -1)
+            pred = model(batch)
+            pred_arr[start:end] = pred.cpu().data.numpy().reshape(batch.shape[0], -1)
 
     if verbose:
         print('Done')
@@ -195,17 +196,19 @@ def get_cifar_test_feat():
 
 def custom_cifar_main():
     # NOTE: change accordingly, may use os.listdir() method
-    base_dir = "data/CIFAR-10-C/"
+    # base_dir = "/home/sunxx/project/Auto_evaluation_cla/CIFAR-setup/dataset/"
+    # files = sorted(os.listdir(base_dir))
+    base_dir = "data/correct_wrong/"
     candidates = sorted(os.listdir(base_dir))
 
-    try:
-        candidates.remove(".DS_Store")
-    except ValueError:
-        pass
+    # candidates = []
+    # for file in files:
+    #     if file.endswith(".npy"):
+    #         candidates.append(file)
 
-    path_fd = "dataset_FD/cifar10-c.npy"
+    path_fd = "dataset_FD/correct_wrong.npy"
     fd_values = np.zeros(len(candidates))
-    feat_path = 'dataset_feature/cifar10-c/'
+    feat_path = 'dataset_feature/correct_wrong/'
     m1, s1, act1 = get_cifar_test_feat()
 
     try:
@@ -214,8 +217,8 @@ def custom_cifar_main():
         pass
 
     for i, candidate in enumerate(tqdm(candidates)):
-        data_path = base_dir + f"{candidate}/{candidate}.npy"
-        label_path = base_dir + f"{candidate}/{candidate}.npy"
+        data_path = base_dir + f"{candidate}/data.npy"
+        label_path = base_dir + f"{candidate}/labels.npy"
 
         test_loader = DataLoader(
             dataset=CustomCIFAR(
@@ -250,11 +253,6 @@ def cifar_f_main():
     try:
         os.makedirs(feat_path)
     except FileExistsError:
-        pass
-    try:
-        # skip the .DS_Store in macOS
-        test_dirs.remove(".DS_Store")
-    except ValueError:
         pass
     # NOTE: the "11" dataset have wrong labels, skip this dataset
     try:
