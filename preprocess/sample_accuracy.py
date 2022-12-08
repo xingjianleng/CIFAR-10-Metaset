@@ -15,8 +15,8 @@ model.load_state_dict(torch.load("model/resnet110-180-9321.pt", map_location=tor
 model.to(device)
 model.eval()
 # NOTE: Change this to adjust the sample accuracy
-target_acc = 0.40
-num_dataset = 4
+target_accs = np.linspace(0, 1, num=11)
+num_dataset = 3
 
 
 def sample_with_accuracy(
@@ -125,7 +125,6 @@ def custom_cifar_main():
                 correct[dataset].extend(np.where(pred == labels)[0] + j * batch_size)
                 wrong[dataset].extend(np.where(pred != labels)[0] + j * batch_size)
 
-
     wrong_imgs = []
     wrong_labels = []
     correct_imgs = []
@@ -146,20 +145,21 @@ def custom_cifar_main():
     correct_imgs = np.array(correct_imgs)
     correct_labels = np.array(correct_labels)
 
-    # sample according to the accuracy
-    rtn_imgs, rtn_labels = sample_with_accuracy(
-        correct_imgs=correct_imgs,
-        correct_labels=correct_labels,
-        wrong_imgs=wrong_imgs,
-        wrong_labels=wrong_labels,
-        target_acc=target_acc,
-        num_dataset=num_dataset,
-    )
-    for i, (imgs, labels) in enumerate(zip(rtn_imgs, rtn_labels)):
-        sampled_data_folder = Path(dst + f"_{i}")
-        sampled_data_folder.mkdir(exist_ok=True)
-        np.save(sampled_data_folder / "data.npy", imgs)
-        np.save(sampled_data_folder / "labels.npy", labels)
+    for target_acc in target_accs:
+        # sample according to the accuracy
+        rtn_imgs, rtn_labels = sample_with_accuracy(
+            correct_imgs=correct_imgs,
+            correct_labels=correct_labels,
+            wrong_imgs=wrong_imgs,
+            wrong_labels=wrong_labels,
+            target_acc=target_acc,
+            num_dataset=num_dataset
+        )
+        for i, (imgs, labels) in enumerate(zip(rtn_imgs, rtn_labels)):
+            sampled_data_folder = Path(dst + f"_{target_acc}_{i}")
+            sampled_data_folder.mkdir(exist_ok=True)
+            np.save(sampled_data_folder / "data.npy", imgs)
+            np.save(sampled_data_folder / "labels.npy", labels)
 
 
 def cifar_f_main():
@@ -212,20 +212,21 @@ def cifar_f_main():
     correct_imgs = np.array(correct_imgs)
     correct_labels = np.array(correct_labels)
 
-    # sample according to the accuracy
-    rtn_imgs, rtn_labels = sample_with_accuracy(
-        correct_imgs=correct_imgs,
-        correct_labels=correct_labels,
-        wrong_imgs=wrong_imgs,
-        wrong_labels=wrong_labels,
-        target_acc=target_acc,
-        num_dataset=num_dataset
-    )
-    for i, (imgs, labels) in enumerate(zip(rtn_imgs, rtn_labels)):
-        sampled_data_folder = Path(dst + f"_{i}")
-        sampled_data_folder.mkdir(exist_ok=True)
-        np.save(sampled_data_folder / "data.npy", imgs)
-        np.save(sampled_data_folder / "labels.npy", labels)
+    for target_acc in target_accs:
+        # sample according to the accuracy
+        rtn_imgs, rtn_labels = sample_with_accuracy(
+            correct_imgs=correct_imgs,
+            correct_labels=correct_labels,
+            wrong_imgs=wrong_imgs,
+            wrong_labels=wrong_labels,
+            target_acc=target_acc,
+            num_dataset=num_dataset
+        )
+        for i, (imgs, labels) in enumerate(zip(rtn_imgs, rtn_labels)):
+            sampled_data_folder = Path(dst + f"_{target_acc}_{i}")
+            sampled_data_folder.mkdir(exist_ok=True)
+            np.save(sampled_data_folder / "data.npy", imgs)
+            np.save(sampled_data_folder / "labels.npy", labels)
 
 
 if __name__ == "__main__":

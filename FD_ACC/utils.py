@@ -137,6 +137,9 @@ def dataset_acc(dataloader, model, device):
         for imgs, labels in iter(dataloader):
             imgs = imgs.to(device)
             pred_multi, _ = predict_multiple(model=model, imgs=imgs)
+            # TODO: Allow setting a threshold to consider correct prediction
+            #       e.g., if the softmax value is greater than a threshold, we can consider
+            #       it as a correct prediction
             for i in range(len(labels)):
                 total[int(labels[i])] += 1
                 if pred_multi[i] == labels[i]:
