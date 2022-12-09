@@ -21,7 +21,7 @@ args = parser.parse_args()
 
 # dimension of the feature
 # dims = 64  # ResNet
-dims = 120
+dims = 84
 batch_size = 500
 use_cuda = args.gpu and torch.cuda.is_available()
 
@@ -199,16 +199,16 @@ def get_cifar_test_feat():
 
 def custom_cifar_main():
     # NOTE: change accordingly, may use os.listdir() method
-    base_dir = "/home/sunxx/project/Auto_evaluation_cla/CIFAR-setup/dataset/"
-    files = sorted(os.listdir(base_dir))
-    dataset_name = "cifar10-transformed"
-    # base_dir = f"data/{dataset_name}/"
-    # candidates = sorted(os.listdir(base_dir))
+    # base_dir = "/home/sunxx/project/Auto_evaluation_cla/CIFAR-setup/dataset/"
+    # files = sorted(os.listdir(base_dir))
+    dataset_name = "custom_cifar"
+    base_dir = f"data/{dataset_name}/"
+    candidates = sorted(os.listdir(base_dir))
 
-    candidates = []
-    for file in files:
-        if file.endswith(".npy"):
-            candidates.append(file)
+    # candidates = []
+    # for file in files:
+    #     if file.endswith(".npy"):
+    #         candidates.append(file)
 
     path_fd = f"dataset_lenet_FD/{dataset_name}.npy"
     fd_values = np.zeros(len(candidates))
@@ -221,11 +221,11 @@ def custom_cifar_main():
         pass
 
     for i, candidate in enumerate(tqdm(candidates)):
-        # data_path = base_dir + f"{candidate}/data.npy"
-        # label_path = base_dir + f"{candidate}/labels.npy"
+        data_path = base_dir + f"{candidate}/data.npy"
+        label_path = base_dir + f"{candidate}/labels.npy"
         # CIFAR-10-Transformed
-        data_path = base_dir + candidate
-        label_path = "data/cifar10-test-transformed/labels.npy"
+        # data_path = base_dir + candidate
+        # label_path = "data/cifar10-test-transformed/labels.npy"
 
         test_loader = DataLoader(
             dataset=CustomCIFAR(
@@ -300,5 +300,5 @@ def cifar_f_main():
 
 
 if __name__ == '__main__':
-    # cifar_f_main()
-    custom_cifar_main()
+    cifar_f_main()
+    # custom_cifar_main()
