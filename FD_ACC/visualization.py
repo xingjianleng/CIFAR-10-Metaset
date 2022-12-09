@@ -3,8 +3,9 @@ import numpy as np
 
 
 if __name__ == "__main__":
-    acc_base = "dataset_ACC/"
-    fd_base = "dataset_FD/"
+    model = "lenet"
+    acc_base = f"dataset_{model}_ACC/"
+    fd_base = f"dataset_{model}_FD/"
 
     # paths
     cifar_f_path = "cifar10-f.npy"
@@ -51,4 +52,4 @@ if __name__ == "__main__":
     plt.ylabel("Accuracy")
     plt.title("Accuracy against FD for datasets")
     plt.legend()
-    plt.savefig("acc_fd.png")
+    plt.savefig(f"{model}_acc_fd.png")

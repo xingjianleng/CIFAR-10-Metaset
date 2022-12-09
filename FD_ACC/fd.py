@@ -3,6 +3,7 @@
 import os
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from ResNet.model import ResNetCifar
+from LeNet.model import LeNet5Feature
 from FD_ACC.utils import TRANSFORM, CIFAR10F, CustomCIFAR
 
 import torch
@@ -19,20 +20,22 @@ parser.add_argument('-c', '--gpu', default='1', type=str,
 args = parser.parse_args()
 
 # dimension of the feature
-dims = 64
+# dims = 64  # ResNet
+dims = 120
 batch_size = 500
 use_cuda = args.gpu and torch.cuda.is_available()
 
-model = ResNetCifar(depth=110)
-# load model_weights
-model.load_state_dict(torch.load('model/resnet110-180-9321.pt', map_location=torch.device('cpu')))
-model = torch.nn.Sequential(*list(model.children())[:-1], torch.nn.Flatten())
+# model = ResNetCifar(depth=110)
+# model.load_state_dict(torch.load('model/resnet110-180-9321.pt', map_location=torch.device('cpu')))
+# model = torch.nn.Sequential(*list(model.children())[:-1], torch.nn.Flatten())
+model = LeNet5Feature()
+model.load_state_dict(torch.load('model/lenet5-50.pt', map_location=torch.device('cpu')))
 if use_cuda:
     model.cuda()
 model.eval()
 
 
-def get_activations(dataloader, model, dims=64,
+def get_activations(dataloader, model, dims,
                     cuda=False, verbose=False):
     """Calculates the activations of the pool_3 layer for all images.
     Params:
@@ -160,7 +163,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
 
 def get_cifar_test_feat():
-    cifar_feat_path = 'dataset_feature/cifar10-test/'
+    cifar_feat_path = 'dataset_lenet_feature/cifar10-test/'
     try:
         os.makedirs(cifar_feat_path)
     except FileExistsError:
@@ -196,19 +199,20 @@ def get_cifar_test_feat():
 
 def custom_cifar_main():
     # NOTE: change accordingly, may use os.listdir() method
-    # base_dir = "/home/sunxx/project/Auto_evaluation_cla/CIFAR-setup/dataset/"
-    # files = sorted(os.listdir(base_dir))
-    base_dir = "data/correct_wrong/"
-    candidates = sorted(os.listdir(base_dir))
+    base_dir = "/home/sunxx/project/Auto_evaluation_cla/CIFAR-setup/dataset/"
+    files = sorted(os.listdir(base_dir))
+    dataset_name = "cifar10-transformed"
+    # base_dir = f"data/{dataset_name}/"
+    # candidates = sorted(os.listdir(base_dir))
 
-    # candidates = []
-    # for file in files:
-    #     if file.endswith(".npy"):
-    #         candidates.append(file)
+    candidates = []
+    for file in files:
+        if file.endswith(".npy"):
+            candidates.append(file)
 
-    path_fd = "dataset_FD/correct_wrong.npy"
+    path_fd = f"dataset_lenet_FD/{dataset_name}.npy"
     fd_values = np.zeros(len(candidates))
-    feat_path = 'dataset_feature/correct_wrong/'
+    feat_path = f'dataset_lenet_feature/{dataset_name}/'
     m1, s1, act1 = get_cifar_test_feat()
 
     try:
@@ -217,8 +221,11 @@ def custom_cifar_main():
         pass
 
     for i, candidate in enumerate(tqdm(candidates)):
-        data_path = base_dir + f"{candidate}/data.npy"
-        label_path = base_dir + f"{candidate}/labels.npy"
+        # data_path = base_dir + f"{candidate}/data.npy"
+        # label_path = base_dir + f"{candidate}/labels.npy"
+        # CIFAR-10-Transformed
+        data_path = base_dir + candidate
+        label_path = "data/cifar10-test-transformed/labels.npy"
 
         test_loader = DataLoader(
             dataset=CustomCIFAR(
@@ -249,7 +256,7 @@ def custom_cifar_main():
 def cifar_f_main():
     base_dir = 'data/cifar10-f'
     test_dirs = sorted(os.listdir(base_dir))
-    feat_path = 'dataset_feature/cifar10-f/'
+    feat_path = 'dataset_lenet_feature/cifar10-f/'
     try:
         os.makedirs(feat_path)
     except FileExistsError:
@@ -289,7 +296,7 @@ def cifar_f_main():
             np.save(feat_path + '%s_mean' % path, m2)
             np.save(feat_path + '%s_variance' % path, s2)
             np.save(feat_path + '%s_feature' % path, act2)
-        np.save('dataset_FD/cifar10-f.npy', fd_values)
+        np.save('dataset_lenet_FD/cifar10-f.npy', fd_values)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 import os
 from ResNet.model import ResNetCifar
+from LeNet.model import LeNet5
 from FD_ACC.utils import dataset_acc, TRANSFORM, CIFAR10F, CustomCIFAR
 
 from tqdm import trange, tqdm
@@ -8,34 +9,41 @@ import torch
 from torch.utils.data import DataLoader
 
 # determine the device to use
-device = "cuda:1" if torch.cuda.is_available() else "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 batch_size = 500
 
 # load the model and change to evaluation mode
-model = ResNetCifar(depth=110).to(device)
-model.load_state_dict(torch.load("model/resnet110-180-9321.pt", map_location=torch.device(device)))
+# model = ResNetCifar(depth=110)
+# model.load_state_dict(torch.load("model/resnet110-180-9321.pt", map_location=torch.device("cpu")))
+# model.to(device)
+model = LeNet5()
+model.load_state_dict(torch.load("model/lenet5-50.pt", map_location=torch.device("cpu")))
+model.to(device)
 model.eval()
 
 
 def custom_cifar_main():
     # NOTE: change accordingly
-    # base_dir = "/home/sunxx/project/Auto_evaluation_cla/CIFAR-setup/dataset/"
-    base_dir = "data/correct_wrong/"
-    # files = sorted(os.listdir(base_dir))
-    candidates = sorted(os.listdir(base_dir))
+    base_dir = "/home/sunxx/project/Auto_evaluation_cla/CIFAR-setup/dataset/"
+    files = sorted(os.listdir(base_dir))
+    dataset_name = "cifar10-transformed"
+    # base_dir = f"data/{dataset_name}/"
+    # candidates = sorted(os.listdir(base_dir))
 
     # NOTE: code for CIFAR transformed 1000
-    # candidates = []
-    # for file in files:
-    #     if file.endswith(".npy"):
-    #         candidates.append(file)
+    candidates = []
+    for file in files:
+        if file.endswith(".npy"):
+            candidates.append(file)
 
-    path_acc = "dataset_ACC/correct_wrong.npy"
+    path_acc = f"dataset_lenet_ACC/{dataset_name}.npy"
     acc_stats = np.zeros(len(candidates))
 
     for i, candidate in enumerate(tqdm(candidates)):
-        data_path = base_dir + f"{candidate}/data.npy"
-        label_path = base_dir + f"{candidate}/labels.npy"
+        # data_path = base_dir + f"{candidate}/data.npy"
+        # label_path = base_dir + f"{candidate}/labels.npy"
+        data_path = base_dir + candidate
+        label_path = "data/cifar10-test-transformed/labels.npy"
 
         test_loader = DataLoader(
             dataset=CustomCIFAR(
@@ -62,7 +70,7 @@ def cifar_f_main():
     except ValueError:
         pass
 
-    path_acc = "dataset_ACC/cifar10-f.npy"
+    path_acc = "dataset_lenet_ACC/cifar10-f.npy"
     acc_stats = np.zeros(len(test_dirs))
 
     for i in trange(len(test_dirs)):
