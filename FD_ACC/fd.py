@@ -17,6 +17,8 @@ parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
                         description='PyTorch CIFAR-10 FD-Metaset')
 parser.add_argument('-c', '--gpu', default='1', type=str,
                     help='GPU to use (leave blank for CPU only)')
+parser.add_argument('-s', '--save', default=False, type=bool,
+                    help='whether save the calculated features')
 args = parser.parse_args()
 
 # dimension of the feature
@@ -164,12 +166,14 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
 def get_cifar_test_feat():
     cifar_feat_path = 'dataset_lenet_feature/cifar10-test/'
-    try:
-        os.makedirs(cifar_feat_path)
-    except FileExistsError:
-        pass
+    if args.save:
+        try:
+            os.makedirs(cifar_feat_path)
+        except FileExistsError:
+            pass
     # if features do not exist, calculate them
-    if set(os.listdir(cifar_feat_path)) != {'mean.npy', 'variance.npy', 'feature.npy'}:
+    if (not os.path.exists(cifar_feat_path) or 
+            set(os.listdir(cifar_feat_path)) != {'mean.npy', 'variance.npy', 'feature.npy'}):
         cifar_test_loader = DataLoader(
             dataset=torchvision.datasets.CIFAR10(
                 root="data",
@@ -187,9 +191,10 @@ def get_cifar_test_feat():
             verbose=False,
         )
         # saving features of training set
-        np.save(cifar_feat_path + 'mean.npy', m1)
-        np.save(cifar_feat_path + 'variance.npy', s1)
-        np.save(cifar_feat_path + 'feature.npy', act1)
+        if args.save:
+            np.save(cifar_feat_path + 'mean.npy', m1)
+            np.save(cifar_feat_path + 'variance.npy', s1)
+            np.save(cifar_feat_path + 'feature.npy', act1)
     else:
         m1 = np.load(cifar_feat_path + 'mean.npy')
         s1 = np.load(cifar_feat_path + 'variance.npy')
@@ -215,10 +220,11 @@ def custom_cifar_main():
     feat_path = f'dataset_lenet_feature/{dataset_name}/'
     m1, s1, act1 = get_cifar_test_feat()
 
-    try:
-        os.makedirs(feat_path)
-    except FileExistsError:
-        pass
+    if args.save:
+        try:
+            os.makedirs(feat_path)
+        except FileExistsError:
+            pass
 
     for i, candidate in enumerate(tqdm(candidates)):
         data_path = base_dir + f"{candidate}/data.npy"
@@ -247,9 +253,10 @@ def custom_cifar_main():
         fd_values[i] = fd_value
 
         # saving features for nn regression
-        np.save(feat_path + '%s_mean' % candidate, m2)
-        np.save(feat_path + '%s_variance' % candidate, s2)
-        np.save(feat_path + '%s_feature' % candidate, act2)
+        if args.save:
+            np.save(feat_path + '%s_mean' % candidate, m2)
+            np.save(feat_path + '%s_variance' % candidate, s2)
+            np.save(feat_path + '%s_feature' % candidate, act2)
     np.save(path_fd, fd_values)
 
 
@@ -257,10 +264,13 @@ def cifar_f_main():
     base_dir = 'data/cifar10-f'
     test_dirs = sorted(os.listdir(base_dir))
     feat_path = 'dataset_lenet_feature/cifar10-f/'
-    try:
-        os.makedirs(feat_path)
-    except FileExistsError:
-        pass
+
+    if args.save:
+        try:
+            os.makedirs(feat_path)
+        except FileExistsError:
+            pass
+
     # NOTE: the "11" dataset have wrong labels, skip this dataset
     try:
         test_dirs.remove("11")
@@ -292,10 +302,11 @@ def cifar_f_main():
             fd_value = calculate_frechet_distance(m1, s1, m2, s2)
             fd_values[i] = fd_value
 
-            # saving features for nn regression
-            np.save(feat_path + '%s_mean' % path, m2)
-            np.save(feat_path + '%s_variance' % path, s2)
-            np.save(feat_path + '%s_feature' % path, act2)
+            if args.save:
+                # saving features for nn regression
+                np.save(feat_path + '%s_mean' % path, m2)
+                np.save(feat_path + '%s_variance' % path, s2)
+                np.save(feat_path + '%s_feature' % path, act2)
         np.save('dataset_lenet_FD/cifar10-f.npy', fd_values)
 
 
