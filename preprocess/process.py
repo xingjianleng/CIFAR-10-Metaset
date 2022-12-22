@@ -1,7 +1,9 @@
 from FD_ACC.utils import process_multiple, CLASSES, FOLDER_ALIAS
+import os
 from pathlib import Path
 
 import numpy as np
+from tqdm import tqdm
 
 
 def save_as_array(src: Path, dst: Path):
@@ -57,10 +59,12 @@ def sample(
 
 
 def process_main():
-    dataset_name = "B_11"
-    src = Path(f"~/Downloads/Clean5Set/{dataset_name}").expanduser().absolute()
-    dst = Path(f"data/custom_processed/{dataset_name}").expanduser().absolute()
-    save_as_array(src=src, dst=dst)
+    dataset_name = "B_1"
+    base_dir = "/data/lengx/cifar/custom_cifar_clean_original"
+    for dataset_name in tqdm(os.listdir(base_dir)):
+        src = Path(f"{base_dir}/{dataset_name}")
+        dst = Path(f"/data/lengx/cifar/custom_cifar_clean/{dataset_name}")
+        save_as_array(src=src, dst=dst)
 
 
 def sample_main():

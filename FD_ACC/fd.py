@@ -22,16 +22,16 @@ parser.add_argument('-s', '--save', default=False, type=bool,
 args = parser.parse_args()
 
 # dimension of the feature
-# dims = 64  # ResNet
-dims = 84
+dims = 64  # ResNet
+# dims = 84
 batch_size = 500
 use_cuda = args.gpu and torch.cuda.is_available()
 
-# model = ResNetCifar(depth=110)
-# model.load_state_dict(torch.load('model/resnet110-180-9321.pt', map_location=torch.device('cpu')))
-# model = torch.nn.Sequential(*list(model.children())[:-1], torch.nn.Flatten())
-model = LeNet5Feature()
-model.load_state_dict(torch.load('model/lenet5-50.pt', map_location=torch.device('cpu')))
+model = ResNetCifar(depth=110)
+model.load_state_dict(torch.load('model/resnet110-180-9321.pt', map_location=torch.device('cpu')))
+model = torch.nn.Sequential(*list(model.children())[:-1], torch.nn.Flatten())
+# model = LeNet5Feature()
+# model.load_state_dict(torch.load('model/lenet5-50.pt', map_location=torch.device('cpu')))
 if use_cuda:
     model.cuda()
 model.eval()
@@ -165,7 +165,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
 
 def get_cifar_test_feat():
-    cifar_feat_path = 'dataset_lenet_feature/cifar10-test/'
+    cifar_feat_path = 'dataset_resnet_feature/cifar10-test/'
     if args.save:
         try:
             os.makedirs(cifar_feat_path)
@@ -176,7 +176,7 @@ def get_cifar_test_feat():
             set(os.listdir(cifar_feat_path)) != {'mean.npy', 'variance.npy', 'feature.npy'}):
         cifar_test_loader = DataLoader(
             dataset=torchvision.datasets.CIFAR10(
-                root="data",
+                root="/data/lengx/cifar",
                 train=False,
                 transform=TRANSFORM,
             ),
@@ -204,10 +204,10 @@ def get_cifar_test_feat():
 
 def custom_cifar_main():
     # NOTE: change accordingly, may use os.listdir() method
-    # base_dir = "/home/sunxx/project/Auto_evaluation_cla/CIFAR-setup/dataset/"
+    # base_dir = "/data/lengx/cifar/cifar10-test-transformed"
     # files = sorted(os.listdir(base_dir))
-    dataset_name = "custom_cifar"
-    base_dir = f"data/{dataset_name}/"
+    dataset_name = "custom_cifar_clean"
+    base_dir = f"/data/lengx/cifar/{dataset_name}/"
     candidates = sorted(os.listdir(base_dir))
 
     # candidates = []
@@ -215,9 +215,9 @@ def custom_cifar_main():
     #     if file.endswith(".npy"):
     #         candidates.append(file)
 
-    path_fd = f"dataset_lenet_FD/{dataset_name}.npy"
+    path_fd = f"dataset_resnet_FD/{dataset_name}.npy"
     fd_values = np.zeros(len(candidates))
-    feat_path = f'dataset_lenet_feature/{dataset_name}/'
+    feat_path = f'dataset_resnet_feature/{dataset_name}/'
     m1, s1, act1 = get_cifar_test_feat()
 
     if args.save:
@@ -231,7 +231,7 @@ def custom_cifar_main():
         label_path = base_dir + f"{candidate}/labels.npy"
         # CIFAR-10-Transformed
         # data_path = base_dir + candidate
-        # label_path = "data/cifar10-test-transformed/labels.npy"
+        # label_path = "/data/lengx/cifar/cifar10-test-transformed/labels.npy"
 
         test_loader = DataLoader(
             dataset=CustomCIFAR(
@@ -261,9 +261,9 @@ def custom_cifar_main():
 
 
 def cifar_f_main():
-    base_dir = 'data/cifar10-f'
+    base_dir = '/data/lengx/cifar/cifar10-f'
     test_dirs = sorted(os.listdir(base_dir))
-    feat_path = 'dataset_lenet_feature/cifar10-f/'
+    feat_path = 'dataset_resnet_feature/cifar10-f/'
 
     if args.save:
         try:
@@ -307,9 +307,9 @@ def cifar_f_main():
                 np.save(feat_path + '%s_mean' % path, m2)
                 np.save(feat_path + '%s_variance' % path, s2)
                 np.save(feat_path + '%s_feature' % path, act2)
-        np.save('dataset_lenet_FD/cifar10-f.npy', fd_values)
+        np.save('dataset_resnet_FD/cifar10-f.npy', fd_values)
 
 
 if __name__ == '__main__':
-    cifar_f_main()
-    # custom_cifar_main()
+    # cifar_f_main()
+    custom_cifar_main()
