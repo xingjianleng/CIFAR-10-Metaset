@@ -3,6 +3,7 @@ import numpy as np
 
 
 if __name__ == "__main__":
+    # model = "lenet"
     model = "resnet"
     acc_base = f"dataset_{model}_ACC/"
     fd_base = f"dataset_{model}_FD/"

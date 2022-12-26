@@ -57,7 +57,12 @@ def process_multiple(imgs_path):
     img_suffix = (".jpg", ".png")
     for file in imgs_path.iterdir():
         if file.suffix in img_suffix:
-            rtn.append(process_single(str(file)))
+            try:
+                res = process_single(str(file))
+                rtn.append(res)
+            except:
+                print(f"File: {file} deleted due to processing failure")
+                file.unlink()
     return rtn
 
 

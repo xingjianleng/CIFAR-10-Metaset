@@ -59,7 +59,6 @@ def sample(
 
 
 def process_main():
-    dataset_name = "B_1"
     base_dir = "/data/lengx/cifar/custom_cifar_clean_original"
     for dataset_name in tqdm(os.listdir(base_dir)):
         src = Path(f"{base_dir}/{dataset_name}")

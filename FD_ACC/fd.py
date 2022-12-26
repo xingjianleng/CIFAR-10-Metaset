@@ -23,7 +23,7 @@ args = parser.parse_args()
 
 # dimension of the feature
 dims = 64  # ResNet
-# dims = 84
+# dims = 84  # LeNet
 batch_size = 500
 use_cuda = args.gpu and torch.cuda.is_available()
 
@@ -165,6 +165,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
 
 def get_cifar_test_feat():
+    # cifar_feat_path = 'dataset_lenet_feature/cifar10-test/'
     cifar_feat_path = 'dataset_resnet_feature/cifar10-test/'
     if args.save:
         try:
@@ -215,9 +216,11 @@ def custom_cifar_main():
     #     if file.endswith(".npy"):
     #         candidates.append(file)
 
+    # path_fd = f"dataset_lenet_FD/{dataset_name}.npy"
+    # feat_path = f'dataset_lenet_feature/{dataset_name}/'
     path_fd = f"dataset_resnet_FD/{dataset_name}.npy"
-    fd_values = np.zeros(len(candidates))
     feat_path = f'dataset_resnet_feature/{dataset_name}/'
+    fd_values = np.zeros(len(candidates))
     m1, s1, act1 = get_cifar_test_feat()
 
     if args.save:
@@ -263,6 +266,7 @@ def custom_cifar_main():
 def cifar_f_main():
     base_dir = '/data/lengx/cifar/cifar10-f'
     test_dirs = sorted(os.listdir(base_dir))
+    # feat_path = 'dataset_lenet_feature/cifar10-f/'
     feat_path = 'dataset_resnet_feature/cifar10-f/'
 
     if args.save:

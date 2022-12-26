@@ -36,7 +36,8 @@ def custom_cifar_main():
     #     if file.endswith(".npy"):
     #         candidates.append(file)
 
-    path_acc = f"dataset_resnet_ACC/{dataset_name}.npy"
+    # path_acc = f"dataset_resnet_ACC/{dataset_name}.npy"
+    path_acc = f"dataset_lenet_ACC/{dataset_name}.npy"
     acc_stats = np.zeros(len(candidates))
 
     for i, candidate in enumerate(tqdm(candidates)):
@@ -70,6 +71,7 @@ def cifar_f_main():
     except ValueError:
         pass
 
+    # path_acc = "dataset_lenet_ACC/cifar10-f.npy"
     path_acc = "dataset_resnet_ACC/cifar10-f.npy"
     acc_stats = np.zeros(len(test_dirs))
 
