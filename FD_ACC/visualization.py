@@ -61,4 +61,4 @@ if __name__ == "__main__":
     plt.ylabel("Accuracy")
     plt.title("Accuracy against FD for datasets")
     plt.legend()
-    plt.savefig(f"{model}_acc_fd.png")
+    plt.savefig(f"generated_files/{model}_acc_fd.png")

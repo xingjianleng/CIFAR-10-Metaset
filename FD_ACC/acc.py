@@ -13,11 +13,18 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 batch_size = 500
 
 # load the model and change to evaluation mode
-model = ResNetCifar(depth=110)
-model.load_state_dict(torch.load("model/resnet110-180-9321.pt", map_location=torch.device("cpu")))
-model.to(device)
-# model = LeNet5()
-# model.load_state_dict(torch.load("model/lenet5-50.pt", map_location=torch.device("cpu")))
+used_model = "resnet"
+# used_model = "lenet"
+
+if used_model == "resnet":
+    model = ResNetCifar(depth=110)
+    model.load_state_dict(torch.load("model/resnet110-180-9321.pt", map_location=torch.device("cpu")))
+elif used_model == "lenet":
+    model = LeNet5()
+    model.load_state_dict(torch.load("model/lenet5-50.pt", map_location=torch.device("cpu")))
+else:
+    raise ValueError(f"Unexpected used_model: {used_model}")
+
 model.to(device)
 model.eval()
 
@@ -36,8 +43,7 @@ def custom_cifar_main():
     #     if file.endswith(".npy"):
     #         candidates.append(file)
 
-    # path_acc = f"dataset_resnet_ACC/{dataset_name}.npy"
-    path_acc = f"dataset_lenet_ACC/{dataset_name}.npy"
+    path_acc = f"dataset_{used_model}_ACC/{dataset_name}.npy"
     acc_stats = np.zeros(len(candidates))
 
     for i, candidate in enumerate(tqdm(candidates)):
@@ -58,7 +64,13 @@ def custom_cifar_main():
         # store the test accuracy on the dataset
         correct, total = dataset_acc(test_loader, model, device)
         acc_stats[i] = sum(correct.values()) / sum(total.values())
+    # save all accuracy to a file
     np.save(path_acc, acc_stats)
+
+    # save the correspondence of dataset and its accuracy
+    with open(f"generated_files/acc_correspondence_{used_model}.txt", "w") as f:
+        for candidate, acc in zip(candidates, acc_stats):
+            f.write(f"{candidate}: {acc}\n")
 
 
 def cifar_f_main():
@@ -71,8 +83,7 @@ def cifar_f_main():
     except ValueError:
         pass
 
-    # path_acc = "dataset_lenet_ACC/cifar10-f.npy"
-    path_acc = "dataset_resnet_ACC/cifar10-f.npy"
+    path_acc = f"dataset_{used_model}_ACC/cifar10-f.npy"
     acc_stats = np.zeros(len(test_dirs))
 
     for i in trange(len(test_dirs)):

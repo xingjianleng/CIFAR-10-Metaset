@@ -21,17 +21,27 @@ parser.add_argument('-s', '--save', default=False, type=bool,
                     help='whether save the calculated features')
 args = parser.parse_args()
 
-# dimension of the feature
-dims = 64  # ResNet
-# dims = 84  # LeNet
 batch_size = 500
 use_cuda = args.gpu and torch.cuda.is_available()
 
-model = ResNetCifar(depth=110)
-model.load_state_dict(torch.load('model/resnet110-180-9321.pt', map_location=torch.device('cpu')))
-model = torch.nn.Sequential(*list(model.children())[:-1], torch.nn.Flatten())
-# model = LeNet5Feature()
-# model.load_state_dict(torch.load('model/lenet5-50.pt', map_location=torch.device('cpu')))
+# load the model and change to evaluation mode
+used_model = "resnet"
+# used_model = "lenet"
+
+if used_model == "resnet":
+    model = ResNetCifar(depth=110)
+    model.load_state_dict(torch.load("model/resnet110-180-9321.pt", map_location=torch.device("cpu")))
+    model = torch.nn.Sequential(*list(model.children())[:-1], torch.nn.Flatten())
+    # dimension of the feature
+    dims = 64  # ResNet
+elif used_model == "lenet":
+    model = LeNet5Feature()
+    model.load_state_dict(torch.load("model/lenet5-50.pt", map_location=torch.device("cpu")))
+    # dimension of the feature
+    dims = 84  # LeNet
+else:
+    raise ValueError(f"Unexpected used_model: {used_model}")
+
 if use_cuda:
     model.cuda()
 model.eval()
@@ -39,7 +49,7 @@ model.eval()
 
 def get_activations(dataloader, model, dims,
                     cuda=False, verbose=False):
-    """Calculates the activations of the pool_3 layer for all images.
+    """Calculates the activations of the pool_3 layer for all images
     Params:
     -- files       : List of image files paths
     -- model       : Instance of inception model
@@ -165,8 +175,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
 
 def get_cifar_test_feat():
-    # cifar_feat_path = 'dataset_lenet_feature/cifar10-test/'
-    cifar_feat_path = 'dataset_resnet_feature/cifar10-test/'
+    cifar_feat_path = f"dataset_{used_model}_feature/cifar10-test/"
     if args.save:
         try:
             os.makedirs(cifar_feat_path)
@@ -216,10 +225,8 @@ def custom_cifar_main():
     #     if file.endswith(".npy"):
     #         candidates.append(file)
 
-    # path_fd = f"dataset_lenet_FD/{dataset_name}.npy"
-    # feat_path = f'dataset_lenet_feature/{dataset_name}/'
-    path_fd = f"dataset_resnet_FD/{dataset_name}.npy"
-    feat_path = f'dataset_resnet_feature/{dataset_name}/'
+    path_fd = f"dataset_{used_model}_FD/{dataset_name}.npy"
+    feat_path = f"dataset_{used_model}_feature/{dataset_name}/"
     fd_values = np.zeros(len(candidates))
     m1, s1, act1 = get_cifar_test_feat()
 
@@ -260,14 +267,19 @@ def custom_cifar_main():
             np.save(feat_path + '%s_mean' % candidate, m2)
             np.save(feat_path + '%s_variance' % candidate, s2)
             np.save(feat_path + '%s_feature' % candidate, act2)
+    # save all frechet-inception-distance to a file
     np.save(path_fd, fd_values)
+
+    # save the correspondence of dataset and its FID
+    with open(f"generated_files/fid_correspondence_{used_model}.txt", "w") as f:
+        for candidate, fd_value in zip(candidates, fd_values):
+            f.write(f"{candidate}: {fd_value}\n")
 
 
 def cifar_f_main():
     base_dir = '/data/lengx/cifar/cifar10-f'
     test_dirs = sorted(os.listdir(base_dir))
-    # feat_path = 'dataset_lenet_feature/cifar10-f/'
-    feat_path = 'dataset_resnet_feature/cifar10-f/'
+    feat_path = f"dataset_{used_model}_feature/cifar10-f/"
 
     if args.save:
         try:
@@ -311,7 +323,7 @@ def cifar_f_main():
                 np.save(feat_path + '%s_mean' % path, m2)
                 np.save(feat_path + '%s_variance' % path, s2)
                 np.save(feat_path + '%s_feature' % path, act2)
-        np.save('dataset_resnet_FD/cifar10-f.npy', fd_values)
+        np.save(f"dataset_{used_model}_FD/cifar10-f.npy", fd_values)
 
 
 if __name__ == '__main__':
