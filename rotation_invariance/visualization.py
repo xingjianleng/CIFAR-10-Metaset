@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats
 
 
 if __name__ == "__main__":
@@ -40,6 +41,21 @@ if __name__ == "__main__":
     acc_cifar_101 = np.load(acc_cifar_101_path)
     rp_cifar_101 = np.load(rp_cifar_101_path)
 
+    x_concat = np.concatenate((
+        rp_cifar_f,
+        rp_cifar_c,
+        rp_cifar_transformed,
+        rp_cifar_clean,
+        np.expand_dims(rp_cifar_101, 0),
+    ))
+    y_concat = np.concatenate((
+        acc_cifar_f,
+        acc_cifar_c,
+        acc_cifar_transformed,
+        acc_cifar_clean,
+        np.expand_dims(acc_cifar_101, 0),
+    ))
+
     # plot
     # x-axis is the rp, y-axis is the Accuracy
     plt.figure(figsize=(10, 8))
@@ -54,3 +70,6 @@ if __name__ == "__main__":
     plt.title("Accuracy against rp for datasets")
     plt.legend()
     plt.savefig(f"generated_files/{model}_acc_rp.png")
+
+    # statistical analysis
+    print(f"Pearson correlation coefficient is: {scipy.stats.pearsonr(x_concat, y_concat)[0]}")
