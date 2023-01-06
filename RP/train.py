@@ -11,8 +11,8 @@ import torch.utils.data
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
-from rotation_invariance.model import ResNetRotation
-from rotation_invariance.rotation import rotate_batch
+from RP.model import ResNetRotation
+from RP.rotation import rotate_batch
 
 parser = argparse.ArgumentParser(description='PyTorch Training')
 parser.add_argument('--epochs', default=20, type=int,

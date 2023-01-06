@@ -7,8 +7,8 @@ import torch.nn as nn
 import torch.utils.data
 from tqdm import tqdm, trange
 
-from rotation_invariance.model import ResNetRotation
-from rotation_invariance.rotation import rotate_batch
+from RP.model import ResNetRotation
+from RP.rotation import rotate_batch
 from FD_ACC.utils import TRANSFORM, CIFAR10F, CustomCIFAR
 
 parser = argparse.ArgumentParser(description='Rotation prediction accuracy')
