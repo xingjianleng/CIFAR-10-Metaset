@@ -1,4 +1,6 @@
 # CIFAR-10-MODELS
+
+## Folders
 Below is the introduction of folders in this repository.
 
 ### ResNet
@@ -10,8 +12,17 @@ The LeNet-5 implementation variant for the CIFAR-10 dataset. It can achieve a mo
 ### FD_ACC
 Scripts in this folder can calculate the ResNet or LeNet architecture FID (Frechet inception distance) and accuracy of given a dataset.
 
+### rotation_invariance
+Scripts are used to calculate the rotation prediction accuracy for a given dataset.
+
 ### preprocess
 Scripts in this folder can be used to preproces or sample a customized CIFAR-10 dataset.
 
 ### model
 This folder contains the parameters of trained ResNet and LeNet models.
+
+## Code Execution
+Since each folder in this repository works as a Python package, module files can be executed from the PROJECT_DIR as below
+```
+python -m PACKAGE_NAME.MODULE_NAME
+```

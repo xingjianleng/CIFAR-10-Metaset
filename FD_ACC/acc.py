@@ -40,7 +40,7 @@ def custom_cifar_main():
     # NOTE: code for CIFAR transformed 1000
     # candidates = []
     # for file in files:
-    #     if file.endswith(".npy"):
+    #     if file.endswith(".npy") and file.startswith("new_data"):
     #         candidates.append(file)
 
     path_acc = f"dataset_{used_model}_ACC/{dataset_name}.npy"
@@ -102,6 +102,32 @@ def cifar_f_main():
     np.save(path_acc, acc_stats)
 
 
+def cifar101_main():
+    dataset_name = "cifar-10.1"
+    base_dir = f"/data/lengx/cifar/{dataset_name}/"
+
+    path_acc = f"dataset_{used_model}_ACC/{dataset_name}.npy"
+
+    data_path = base_dir + "cifar10.1_v6_data.npy"
+    label_path = base_dir + "cifar10.1_v6_labels.npy"
+
+    test_loader = DataLoader(
+        dataset=CustomCIFAR(
+            data_path=data_path,
+            label_path=label_path,
+            transform=TRANSFORM,
+        ),
+        batch_size=batch_size,
+        shuffle=False
+    )
+    # store the test accuracy on the dataset
+    correct, total = dataset_acc(test_loader, model, device)
+    acc_stats = sum(correct.values()) / sum(total.values())
+    # save all accuracy to a file
+    np.save(path_acc, acc_stats)
+
+
 if __name__ == "__main__":
     # cifar_f_main()
-    custom_cifar_main()
+    # custom_cifar_main()
+    cifar101_main()

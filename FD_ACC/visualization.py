@@ -33,6 +33,10 @@ if __name__ == "__main__":
     acc_cifar_clean_path = acc_base + cifar_clean
     fd_cifar_clean_path = fd_base + cifar_clean
 
+    cifar_101 = "cifar-10.1.npy"
+    acc_cifar_101_path = acc_base + cifar_101
+    fd_cifar_101_path = fd_base + cifar_101
+
     # data
     acc_cifar_f = np.load(acc_cifar_f_path)
     fd_cifar_f = np.load(fd_cifar_d_path)
@@ -46,6 +50,8 @@ if __name__ == "__main__":
     fd_cifar_transformed = np.load(fd_cifar_transformed_path)
     acc_cifar_clean = np.load(acc_cifar_clean_path)
     fd_cifar_clean = np.load(fd_cifar_clean_path)
+    acc_cifar_101 = np.load(acc_cifar_101_path)
+    fd_cifar_101 = np.load(fd_cifar_101_path)
 
     # plot
     # x-axis is the FD, y-axis is the Accuracy
@@ -56,6 +62,7 @@ if __name__ == "__main__":
     plt.scatter(x=fd_custom_cifar, y=acc_custom_cifar, label="Custom CIFAR")
     # plt.scatter(x=fd_correct_wrong, y=acc_correct_wrong, label="Sampled target accuracy")
     plt.scatter(x=fd_cifar_clean, y=acc_cifar_clean, label="Custom CIFAR-10 clean")
+    plt.scatter(x=fd_cifar_101, y=acc_cifar_101, label="CIFAR-10.1")
 
     plt.xlabel("FD")
     plt.ylabel("Accuracy")

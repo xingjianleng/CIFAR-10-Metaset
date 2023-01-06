@@ -222,7 +222,7 @@ def custom_cifar_main():
 
     # candidates = []
     # for file in files:
-    #     if file.endswith(".npy"):
+    #     if file.endswith(".npy") and file.startswith("new_data"):
     #         candidates.append(file)
 
     path_fd = f"dataset_{used_model}_FD/{dataset_name}.npy"
@@ -326,6 +326,39 @@ def cifar_f_main():
         np.save(f"dataset_{used_model}_FD/cifar10-f.npy", fd_values)
 
 
+def cifar101_main():
+    dataset_name = "cifar-10.1"
+    base_dir = f"/data/lengx/cifar/{dataset_name}/"
+
+    path_acc = f"dataset_{used_model}_FD/{dataset_name}.npy"
+
+    data_path = base_dir + "cifar10.1_v6_data.npy"
+    label_path = base_dir + "cifar10.1_v6_labels.npy"
+
+    m1, s1, act1 = get_cifar_test_feat()
+
+    test_loader = DataLoader(
+        dataset=CustomCIFAR(
+            data_path=data_path,
+            label_path=label_path,
+            transform=TRANSFORM,
+        ),
+        batch_size=batch_size,
+        shuffle=False
+    )
+    m2, s2, act2 = calculate_activation_statistics(
+        test_loader,
+        model,
+        dims,
+        use_cuda,
+        verbose=False,
+    )
+    fd_value = calculate_frechet_distance(m1, s1, m2, s2)
+    # save all accuracy to a file
+    np.save(path_acc, fd_value)
+
+
 if __name__ == '__main__':
     # cifar_f_main()
-    custom_cifar_main()
+    # custom_cifar_main()
+    cifar101_main()
