@@ -214,7 +214,7 @@ def get_cifar_test_feat():
 
 def custom_cifar_main():
     # NOTE: change accordingly, may use os.listdir() method
-    # base_dir = "/data/lengx/cifar/cifar10-test-transformed"
+    # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
     # files = sorted(os.listdir(base_dir))
     dataset_name = "custom_cifar_clean"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"

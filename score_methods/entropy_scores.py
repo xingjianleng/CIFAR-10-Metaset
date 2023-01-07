@@ -1,15 +1,18 @@
 import os
-from ResNet.model import ResNetCifar
-from LeNet.model import LeNet5
-from FD_ACC.utils import dataset_acc, TRANSFORM, CIFAR10F, CustomCIFAR
 
-from tqdm import trange, tqdm
-import numpy as np
 import torch
 from torch.utils.data import DataLoader
+import numpy as np
+import scipy.stats
+from tqdm import tqdm, trange
+
+from ResNet.model import ResNetCifar
+from LeNet.model import LeNet5
+from FD_ACC.utils import TRANSFORM, CLASSES, CustomCIFAR, CIFAR10F, predict_multiple
+
 
 # determine the device to use
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda:2" if torch.cuda.is_available() else "cpu"
 batch_size = 500
 
 # load the model and change to evaluation mode
@@ -43,8 +46,8 @@ def custom_cifar_main():
     #     if file.endswith(".npy") and file.startswith("new_data"):
     #         candidates.append(file)
 
-    path_acc = f"dataset_{used_model}_ACC/{dataset_name}.npy"
-    acc_stats = np.zeros(len(candidates))
+    path_es = f"dataset_{used_model}_ES/{dataset_name}.npy"
+    es_stats = np.zeros(len(candidates))
 
     for i, candidate in enumerate(tqdm(candidates)):
         data_path = base_dir + f"{candidate}/data.npy"
@@ -52,29 +55,31 @@ def custom_cifar_main():
         # data_path = base_dir + candidate
         # label_path = f"{base_dir}/labels.npy"
 
+        test_set = CustomCIFAR(
+            data_path=data_path,
+            label_path=label_path,
+            transform=TRANSFORM,
+        )
         test_loader = DataLoader(
-            dataset=CustomCIFAR(
-                data_path=data_path,
-                label_path=label_path,
-                transform=TRANSFORM,
-            ),
+            dataset=test_set,
             batch_size=batch_size,
-            shuffle=False
+            shuffle=False,
         )
         # store the test accuracy on the dataset
-        correct, total = dataset_acc(test_loader, model, device)
-        acc_stats[i] = sum(correct.values()) / sum(total.values())
+        total = len(test_set)
+        correct = entropy_score(test_loader, model, device, threshold=0.2)
+        es_stats[i] = correct / total
     # save all accuracy to a file
-    np.save(path_acc, acc_stats)
+    np.save(path_es, es_stats)
 
     # save the correspondence of dataset and its accuracy
-    with open(f"generated_files/acc_correspondence_{used_model}.txt", "w") as f:
-        for candidate, acc in zip(candidates, acc_stats):
-            f.write(f"{candidate}: {acc}\n")
+    with open(f"generated_files/es_correspondence_{used_model}.txt", "w") as f:
+        for candidate, es in zip(candidates, es_stats):
+            f.write(f"{candidate}: {es}\n")
 
 
 def cifar_f_main():
-    base_dir = '/data/lengx/cifar/cifar10-f'
+    base_dir = '/data/lengx/cifar/cifar10-f-32'
     test_dirs = sorted(os.listdir(base_dir))
 
     # NOTE: the "11" dataset have wrong labels, skip this dataset
@@ -83,51 +88,68 @@ def cifar_f_main():
     except ValueError:
         pass
 
-    path_acc = f"dataset_{used_model}_ACC/cifar10-f.npy"
-    acc_stats = np.zeros(len(test_dirs))
+    path_es = f"dataset_{used_model}_ES/cifar10-f.npy"
+    es_stats = np.zeros(len(test_dirs))
 
     for i in trange(len(test_dirs)):
         path = test_dirs[i]
+        dataset = CIFAR10F(
+            path=base_dir + "/" + path,
+            transform=TRANSFORM
+        )
         test_loader = DataLoader(
-            dataset=CIFAR10F(
-                path=base_dir + "/" + path,
-                transform=TRANSFORM
-            ),
+            dataset=dataset,
             batch_size=batch_size,
             shuffle=False,
         )
+
         # store the test accuracy on the dataset
-        correct, total = dataset_acc(test_loader, model, device)
-        acc_stats[i] = sum(correct.values()) / sum(total.values())
-    np.save(path_acc, acc_stats)
+        total = len(dataset)
+        correct = entropy_score(test_loader, model, device, threshold=0.2)
+        es_stats[i] = correct / total
+    np.save(path_es, es_stats)
 
 
 def cifar101_main():
     dataset_name = "cifar-10.1"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"
 
-    path_acc = f"dataset_{used_model}_ACC/{dataset_name}.npy"
+    path_es = f"dataset_{used_model}_ES/{dataset_name}.npy"
 
     data_path = base_dir + "cifar10.1_v6_data.npy"
     label_path = base_dir + "cifar10.1_v6_labels.npy"
 
+    dataset = CustomCIFAR(
+        data_path=data_path,
+        label_path=label_path,
+        transform=TRANSFORM,
+    )
     test_loader = DataLoader(
-        dataset=CustomCIFAR(
-            data_path=data_path,
-            label_path=label_path,
-            transform=TRANSFORM,
-        ),
+        dataset=dataset,
         batch_size=batch_size,
         shuffle=False
     )
     # store the test accuracy on the dataset
-    correct, total = dataset_acc(test_loader, model, device)
-    acc_stats = sum(correct.values()) / sum(total.values())
+    total = len(dataset)
+    correct = entropy_score(test_loader, model, device, threshold=0.2)
     # save all accuracy to a file
-    np.save(path_acc, acc_stats)
+    np.save(path_es, correct / total)
+
+
+def entropy_score(dataloader, model, device, threshold):
+    # entropy score on images in the folder
+    correct = 0
+
+    with torch.no_grad():
+        for imgs, _ in iter(dataloader):
+            imgs = imgs.to(device)
+            _, probs = predict_multiple(model=model, imgs=imgs)
+            correct += np.sum(scipy.stats.entropy(probs, axis=1) / np.log(len(CLASSES)) < threshold)
+
+    return correct
 
 
 if __name__ == "__main__":
-    # cifar_f_main()
     custom_cifar_main()
     # cifar101_main()
+    # cifar_f_main()
