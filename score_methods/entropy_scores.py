@@ -65,14 +65,13 @@ def custom_cifar_main():
             batch_size=batch_size,
             shuffle=False,
         )
-        # store the test accuracy on the dataset
+        # store predicted scores on the dataset
         total = len(test_set)
         correct = entropy_score(test_loader, model, device, threshold=0.2)
         es_stats[i] = correct / total
-    # save all accuracy to a file
     np.save(path_es, es_stats)
 
-    # save the correspondence of dataset and its accuracy
+    # save the correspondence of dataset and its predicted scores
     with open(f"generated_files/es_correspondence_{used_model}.txt", "w") as f:
         for candidate, es in zip(candidates, es_stats):
             f.write(f"{candidate}: {es}\n")
@@ -103,7 +102,7 @@ def cifar_f_main():
             shuffle=False,
         )
 
-        # store the test accuracy on the dataset
+        # store predicted scores on the dataset
         total = len(dataset)
         correct = entropy_score(test_loader, model, device, threshold=0.2)
         es_stats[i] = correct / total
@@ -129,10 +128,9 @@ def cifar101_main():
         batch_size=batch_size,
         shuffle=False
     )
-    # store the test accuracy on the dataset
+    # store predicted scores on the dataset
     total = len(dataset)
     correct = entropy_score(test_loader, model, device, threshold=0.2)
-    # save all accuracy to a file
     np.save(path_es, correct / total)
 
 

@@ -1,12 +1,15 @@
 import os
+
+import torch
+import numpy as np
+import torch.utils.data
+from tqdm import tqdm, trange
+
+from EI.utils import rotat_invariance
+from FD_ACC.utils import CustomCIFAR, CIFAR10F, TRANSFORM
 from ResNet.model import ResNetCifar
 from LeNet.model import LeNet5
-from FD_ACC.utils import dataset_acc, TRANSFORM, CIFAR10F, CustomCIFAR
 
-from tqdm import trange, tqdm
-import numpy as np
-import torch
-from torch.utils.data import DataLoader
 
 # determine the device to use
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -43,8 +46,8 @@ def custom_cifar_main():
     #     if file.endswith(".npy") and file.startswith("new_data"):
     #         candidates.append(file)
 
-    path_acc = f"dataset_{used_model}_ACC/{dataset_name}.npy"
-    acc_stats = np.zeros(len(candidates))
+    path_ri = f"dataset_{used_model}_RI/{dataset_name}.npy"
+    ri_stats = np.zeros(len(candidates))
 
     for i, candidate in enumerate(tqdm(candidates)):
         data_path = base_dir + f"{candidate}/data.npy"
@@ -52,7 +55,7 @@ def custom_cifar_main():
         # data_path = base_dir + candidate
         # label_path = f"{base_dir}/labels.npy"
 
-        test_loader = DataLoader(
+        test_loader = torch.utils.data.DataLoader(
             dataset=CustomCIFAR(
                 data_path=data_path,
                 label_path=label_path,
@@ -61,16 +64,14 @@ def custom_cifar_main():
             batch_size=batch_size,
             shuffle=False
         )
-        # store the test accuracy on the dataset
-        correct, total = dataset_acc(test_loader, model, device)
-        acc_stats[i] = sum(correct.values()) / sum(total.values())
-    # save all accuracy to a file
-    np.save(path_acc, acc_stats)
+        # store rotation invaraince on the dataset
+        ri_stats[i] = rotat_invariance(test_loader, model, device)
+    np.save(path_ri, ri_stats)
 
-    # save the correspondence of dataset and its accuracy
-    with open(f"generated_files/acc_correspondence_{used_model}.txt", "w") as f:
-        for candidate, acc in zip(candidates, acc_stats):
-            f.write(f"{candidate}: {acc}\n")
+    # save the correspondence of dataset and its rotation invariance
+    with open(f"generated_files/ri_correspondence_{used_model}.txt", "w") as f:
+        for candidate, ri in zip(candidates, ri_stats):
+            f.write(f"{candidate}: {ri}\n")
 
 
 def cifar_f_main():
@@ -83,12 +84,12 @@ def cifar_f_main():
     except ValueError:
         pass
 
-    path_acc = f"dataset_{used_model}_ACC/cifar10-f.npy"
-    acc_stats = np.zeros(len(test_dirs))
+    path_ri = f"dataset_{used_model}_RI/cifar10-f.npy"
+    ri_stats = np.zeros(len(test_dirs))
 
     for i in trange(len(test_dirs)):
         path = test_dirs[i]
-        test_loader = DataLoader(
+        test_loader = torch.utils.data.DataLoader(
             dataset=CIFAR10F(
                 path=base_dir + "/" + path,
                 transform=TRANSFORM
@@ -96,22 +97,21 @@ def cifar_f_main():
             batch_size=batch_size,
             shuffle=False,
         )
-        # store the test accuracy on the dataset
-        correct, total = dataset_acc(test_loader, model, device)
-        acc_stats[i] = sum(correct.values()) / sum(total.values())
-    np.save(path_acc, acc_stats)
+        # store rotation invariance on the dataset
+        ri_stats[i] = rotat_invariance(test_loader, model, device)
+    np.save(path_ri, ri_stats)
 
 
 def cifar101_main():
     dataset_name = "cifar-10.1"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"
 
-    path_acc = f"dataset_{used_model}_ACC/{dataset_name}.npy"
+    path_ri = f"dataset_{used_model}_RI/{dataset_name}.npy"
 
     data_path = base_dir + "cifar10.1_v6_data.npy"
     label_path = base_dir + "cifar10.1_v6_labels.npy"
 
-    test_loader = DataLoader(
+    test_loader = torch.utils.data.DataLoader(
         dataset=CustomCIFAR(
             data_path=data_path,
             label_path=label_path,
@@ -120,11 +120,9 @@ def cifar101_main():
         batch_size=batch_size,
         shuffle=False
     )
-    # store the test accuracy on the dataset
-    correct, total = dataset_acc(test_loader, model, device)
-    acc_stats = sum(correct.values()) / sum(total.values())
-    # save all accuracy to a file
-    np.save(path_acc, acc_stats)
+    # store rotation invariance on the dataset
+    rotation_inv = rotat_invariance(test_loader, model, device)
+    np.save(path_ri, rotation_inv)
 
 
 if __name__ == "__main__":

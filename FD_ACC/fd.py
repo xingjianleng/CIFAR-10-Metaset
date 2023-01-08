@@ -277,7 +277,7 @@ def custom_cifar_main():
 
 
 def cifar_f_main():
-    base_dir = '/data/lengx/cifar/cifar10-f'
+    base_dir = '/data/lengx/cifar/cifar10-f-32'
     test_dirs = sorted(os.listdir(base_dir))
     feat_path = f"dataset_{used_model}_feature/cifar10-f/"
 

@@ -64,14 +64,13 @@ def custom_cifar_main():
             batch_size=batch_size,
             shuffle=False,
         )
-        # store the test accuracy on the dataset
+        # store the predicted scores on the dataset
         total = len(test_set)
         correct = prediction_score(test_loader, model, device, threshold=0.9)
         ps_stats[i] = correct / total
-    # save all accuracy to a file
     np.save(path_ps, ps_stats)
 
-    # save the correspondence of dataset and its accuracy
+    # save the correspondence of dataset and its predicted scores
     with open(f"generated_files/ps_correspondence_{used_model}.txt", "w") as f:
         for candidate, ps in zip(candidates, ps_stats):
             f.write(f"{candidate}: {ps}\n")
@@ -102,7 +101,7 @@ def cifar_f_main():
             shuffle=False,
         )
 
-        # store the test accuracy on the dataset
+        # store the predicted scores on the dataset
         total = len(dataset)
         correct = prediction_score(test_loader, model, device, threshold=0.9)
         ps_stats[i] = correct / total
@@ -128,10 +127,9 @@ def cifar101_main():
         batch_size=batch_size,
         shuffle=False
     )
-    # store the test accuracy on the dataset
+    # store the predicted scores on the dataset
     total = len(dataset)
     correct = prediction_score(test_loader, model, device, threshold=0.9)
-    # save all accuracy to a file
     np.save(path_ps, correct / total)
 
 
