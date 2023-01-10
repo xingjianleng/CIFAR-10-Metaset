@@ -1,4 +1,5 @@
 import torch
+import torchvision.transforms as T
 import numpy as np
 
 from RP.rotation import rotate_batch
@@ -24,6 +25,7 @@ def effective_invariance(original: np.ndarray, transformed: np.ndarray):
 
 
 def rotat_invariance(dataloader, model, device):
+    rotation_invs = []
     with torch.no_grad():
         for imgs, _ in iter(dataloader):
             original = predict_multiple(model, imgs.to(device))[1]
@@ -33,24 +35,19 @@ def rotat_invariance(dataloader, model, device):
                 imgs_rotated, _ = rotate_batch(imgs, rot)
                 transformed = predict_multiple(model, imgs_rotated.to(device))[1]
                 eis[rot - 1] = effective_invariance(original, transformed)
+            # the rotation invariance for each image
+            rotation_invs.extend(np.mean(eis, axis=0).tolist())
     # the rotation invariance of dataset is the mean of all rotation invariances
-    return np.mean(eis)
+    return np.mean(rotation_invs)
 
 
-def rgb2gray(img):
-    # Assumes that tensor is (nchannels, height, width)
-    # x = 0.299r + 0.587g + 0.114b
-    # FIXME: Should it have 3 channels?
-    return 0.299 * img[0] + 0.587 * img[1] + 0.114 * img[2]
-
-
-def rgb2gray_batch(imgs):
-    # convert multiple RGB images to grayscale image
-    images = []
-    for img in imgs:
-        images.append(rgb2gray(img).unsqueeze(0))
-    return torch.cat(images)
-
-
-def gray_invariance():
-    pass
+def gray_invariance(dataloader, model, device):
+    grayscale_transform = T.Grayscale(num_output_channels=3)
+    grayscale_invs = []
+    with torch.no_grad():
+        for imgs, _ in iter(dataloader):
+            original = predict_multiple(model, imgs.to(device))[1]
+            imgs_gray = grayscale_transform(imgs)
+            transformed = predict_multiple(model, imgs_gray.to(device))[1]
+            grayscale_invs.extend(effective_invariance(original, transformed))
+    return np.mean(grayscale_invs)

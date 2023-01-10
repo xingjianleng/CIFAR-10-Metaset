@@ -74,7 +74,7 @@ if __name__ == "__main__":
     plt.scatter(x=rp_cifar_101, y=acc_cifar_101, label="CIFAR-10.1")
     plt.scatter(x=rp_diffusion, y=acc_diffusion, label="Diffusion model")
 
-    plt.xlabel("rp")
+    plt.xlabel("Rotation prediction")
     plt.ylabel("Accuracy")
     plt.title("Accuracy against rp for datasets")
     plt.legend()
