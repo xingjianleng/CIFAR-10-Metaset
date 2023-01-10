@@ -36,7 +36,7 @@ def custom_cifar_main():
     # NOTE: change accordingly
     # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
     # files = sorted(os.listdir(base_dir))
-    dataset_name = "custom_cifar_clean"
+    dataset_name = "diffusion_processed"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"
     candidates = sorted(os.listdir(base_dir))
 
@@ -72,9 +72,9 @@ def custom_cifar_main():
     np.save(path_es, es_stats)
 
     # save the correspondence of dataset and its predicted scores
-    with open(f"generated_files/es_correspondence_{used_model}.txt", "w") as f:
-        for candidate, es in zip(candidates, es_stats):
-            f.write(f"{candidate}: {es}\n")
+    # with open(f"generated_files/es_correspondence_{used_model}.txt", "w") as f:
+    #     for candidate, es in zip(candidates, es_stats):
+    #         f.write(f"{candidate}: {es}\n")
 
 
 def cifar_f_main():

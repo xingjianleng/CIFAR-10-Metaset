@@ -24,7 +24,6 @@ def effective_invariance(original: np.ndarray, transformed: np.ndarray):
 
 
 def rotat_invariance(dataloader, model, device):
-    rotation_invs = []
     with torch.no_grad():
         for imgs, _ in iter(dataloader):
             original = predict_multiple(model, imgs.to(device))[1]
@@ -34,10 +33,8 @@ def rotat_invariance(dataloader, model, device):
                 imgs_rotated, _ = rotate_batch(imgs, rot)
                 transformed = predict_multiple(model, imgs_rotated.to(device))[1]
                 eis[rot - 1] = effective_invariance(original, transformed)
-            # the rotation invariance for each image
-            rotation_invs.extend(np.mean(eis, axis=0).tolist())
     # the rotation invariance of dataset is the mean of all rotation invariances
-    return np.mean(rotation_invs)
+    return np.mean(eis)
 
 
 def rgb2gray(img):

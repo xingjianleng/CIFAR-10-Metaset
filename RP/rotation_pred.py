@@ -37,7 +37,7 @@ def custom_cifar_main():
     # NOTE: change accordingly, may use os.listdir() method
     # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
     # files = sorted(os.listdir(base_dir))
-    dataset_name = "custom_cifar_clean"
+    dataset_name = "diffusion_processed"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"
     candidates = sorted(os.listdir(base_dir))
     # candidates = []
@@ -73,9 +73,9 @@ def custom_cifar_main():
     np.save(path_RP, ssh_acc)
 
     # save the correspondence of dataset and its rotation prediction score
-    with open(f"generated_files/rp_correspondence_{used_model}.txt", "w") as f:
-        for candidate, rot_pred in zip(candidates, ssh_acc):
-            f.write(f"{candidate}: {rot_pred}\n")
+    # with open(f"generated_files/rp_correspondence_{used_model}.txt", "w") as f:
+    #     for candidate, rot_pred in zip(candidates, ssh_acc):
+    #         f.write(f"{candidate}: {rot_pred}\n")
 
 
 def cifar_f_main():

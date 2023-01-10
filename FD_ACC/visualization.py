@@ -38,6 +38,10 @@ if __name__ == "__main__":
     acc_cifar_101_path = acc_base + cifar_101
     fd_cifar_101_path = fd_base + cifar_101
 
+    diffusion = "diffusion_processed.npy"
+    acc_diffusion_path = acc_base + diffusion
+    fd_diffusion_path = fd_base + diffusion
+
     # data
     acc_cifar_f = np.load(acc_cifar_f_path)
     fd_cifar_f = np.load(fd_cifar_d_path)
@@ -53,6 +57,8 @@ if __name__ == "__main__":
     fd_cifar_clean = np.load(fd_cifar_clean_path)
     acc_cifar_101 = np.load(acc_cifar_101_path)
     fd_cifar_101 = np.load(fd_cifar_101_path)
+    acc_diffusion = np.load(acc_diffusion_path)
+    fd_diffusion = np.load(fd_diffusion_path)
 
     x_concat = np.concatenate((
         fd_cifar_f,
@@ -60,6 +66,7 @@ if __name__ == "__main__":
         fd_cifar_transformed,
         fd_cifar_clean,
         np.expand_dims(fd_cifar_101, 0),
+        fd_diffusion,
     ))
     y_concat = np.concatenate((
         acc_cifar_f,
@@ -67,6 +74,7 @@ if __name__ == "__main__":
         acc_cifar_transformed,
         acc_cifar_clean,
         np.expand_dims(acc_cifar_101, 0),
+        acc_diffusion,
     ))
 
     # plot
@@ -79,6 +87,7 @@ if __name__ == "__main__":
     # plt.scatter(x=fd_correct_wrong, y=acc_correct_wrong, label="Sampled target accuracy")
     plt.scatter(x=fd_cifar_clean, y=acc_cifar_clean, label="Custom CIFAR-10 clean")
     plt.scatter(x=fd_cifar_101, y=acc_cifar_101, label="CIFAR-10.1")
+    plt.scatter(x=fd_diffusion, y=acc_diffusion, label="Diffusion model")
 
     plt.xlabel("FD")
     plt.ylabel("Accuracy")

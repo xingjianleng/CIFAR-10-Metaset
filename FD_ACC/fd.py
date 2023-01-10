@@ -216,7 +216,7 @@ def custom_cifar_main():
     # NOTE: change accordingly, may use os.listdir() method
     # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
     # files = sorted(os.listdir(base_dir))
-    dataset_name = "custom_cifar_clean"
+    dataset_name = "diffusion_processed"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"
     candidates = sorted(os.listdir(base_dir))
 
@@ -271,9 +271,9 @@ def custom_cifar_main():
     np.save(path_fd, fd_values)
 
     # save the correspondence of dataset and its FID
-    with open(f"generated_files/fid_correspondence_{used_model}.txt", "w") as f:
-        for candidate, fd_value in zip(candidates, fd_values):
-            f.write(f"{candidate}: {fd_value}\n")
+    # with open(f"generated_files/fid_correspondence_{used_model}.txt", "w") as f:
+    #     for candidate, fd_value in zip(candidates, fd_values):
+    #         f.write(f"{candidate}: {fd_value}\n")
 
 
 def cifar_f_main():
@@ -360,5 +360,5 @@ def cifar101_main():
 
 if __name__ == '__main__':
     # cifar_f_main()
-    # custom_cifar_main()
-    cifar101_main()
+    custom_cifar_main()
+    # cifar101_main()
