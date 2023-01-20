@@ -59,10 +59,10 @@ def sample(
 
 
 def process_main():
-    base_dir = "/data/lengx/cifar/diffusion"
+    base_dir = "/data/lengx/cifar/cifar10-f-original"
     for dataset_name in tqdm(os.listdir(base_dir)):
         src = Path(f"{base_dir}/{dataset_name}")
-        dst = Path(f"/data/lengx/cifar/diffusion_processed/{dataset_name}")
+        dst = Path(f"/data/lengx/cifar/cifar10-f-32/{dataset_name}")
         save_as_array(src=src, dst=dst)
 
 

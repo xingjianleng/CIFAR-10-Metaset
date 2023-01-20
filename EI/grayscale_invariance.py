@@ -3,12 +3,10 @@ import os
 import torch
 import numpy as np
 import torch.utils.data
-from tqdm import tqdm, trange
+from tqdm import tqdm
 
 from EI.utils import gray_invariance
-from FD_ACC.utils import CustomCIFAR, CIFAR10F, TRANSFORM
-from ResNet.model import ResNetCifar
-from LeNet.model import LeNet5
+from FD_ACC.utils import CustomCIFAR, TRANSFORM
 
 
 # determine the device to use
@@ -17,14 +15,12 @@ batch_size = 500
 
 # load the model and change to evaluation mode
 used_model = "resnet"
-# used_model = "lenet"
+# used_model = "repvgg"
 
 if used_model == "resnet":
-    model = ResNetCifar(depth=110)
-    model.load_state_dict(torch.load("model/resnet110-180-9321.pt", map_location=torch.device("cpu")))
-elif used_model == "lenet":
-    model = LeNet5()
-    model.load_state_dict(torch.load("model/lenet5-50.pt", map_location=torch.device("cpu")))
+    model = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_resnet56", pretrained=True)
+elif used_model == "repvgg":
+    model = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_repvgg_a0", pretrained=True)
 else:
     raise ValueError(f"Unexpected used_model: {used_model}")
 
@@ -32,7 +28,7 @@ model.to(device)
 model.eval()
 
 
-def custom_cifar_main():
+def main():
     # NOTE: change accordingly
     # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
     # files = sorted(os.listdir(base_dir))
@@ -74,58 +70,5 @@ def custom_cifar_main():
     #         f.write(f"{candidate}: {gi}\n")
 
 
-def cifar_f_main():
-    base_dir = '/data/lengx/cifar/cifar10-f-32'
-    test_dirs = sorted(os.listdir(base_dir))
-
-    # NOTE: the "11" dataset have wrong labels, skip this dataset
-    try:
-        test_dirs.remove("11")
-    except ValueError:
-        pass
-
-    path_gi = f"dataset_{used_model}_GI/cifar10-f.npy"
-    gi_stats = np.zeros(len(test_dirs))
-
-    for i in trange(len(test_dirs)):
-        path = test_dirs[i]
-        test_loader = torch.utils.data.DataLoader(
-            dataset=CIFAR10F(
-                path=base_dir + "/" + path,
-                transform=TRANSFORM
-            ),
-            batch_size=batch_size,
-            shuffle=False,
-        )
-        # store rotation invariance on the dataset
-        gi_stats[i] = gray_invariance(test_loader, model, device)
-    np.save(path_gi, gi_stats)
-
-
-def cifar101_main():
-    dataset_name = "cifar-10.1"
-    base_dir = f"/data/lengx/cifar/{dataset_name}/"
-
-    path_gi = f"dataset_{used_model}_GI/{dataset_name}.npy"
-
-    data_path = base_dir + "cifar10.1_v6_data.npy"
-    label_path = base_dir + "cifar10.1_v6_labels.npy"
-
-    test_loader = torch.utils.data.DataLoader(
-        dataset=CustomCIFAR(
-            data_path=data_path,
-            label_path=label_path,
-            transform=TRANSFORM,
-        ),
-        batch_size=batch_size,
-        shuffle=False
-    )
-    # store rotation invariance on the dataset
-    grayscale_inv = gray_invariance(test_loader, model, device)
-    np.save(path_gi, grayscale_inv)
-
-
 if __name__ == "__main__":
-    # cifar_f_main()
-    custom_cifar_main()
-    # cifar101_main()
+    main()

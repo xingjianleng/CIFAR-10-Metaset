@@ -5,15 +5,16 @@ import scipy.stats
 
 if __name__ == "__main__":
     model = "resnet"
+    # model = "repvgg"
     acc_base = f"dataset_{model}_ACC/"
     gi_base = f"dataset_{model}_GI/"
 
     # paths
-    cifar_f_path = "cifar10-f.npy"
+    cifar_f_path = "cifar10-f-32.npy"
     acc_cifar_f_path = acc_base + cifar_f_path
     gi_cifar_d_path = gi_base + cifar_f_path
 
-    cifar_c_path = "cifar10-c.npy"
+    cifar_c_path = "cifar-10.1-c.npy"
     acc_cifar_c_path = acc_base + cifar_c_path
     gi_cifar_c_path = gi_base + cifar_c_path
 
@@ -29,6 +30,10 @@ if __name__ == "__main__":
     acc_cifar_101_path = acc_base + cifar_101
     gi_cifar_101_path = gi_base + cifar_101
 
+    diffusion = "diffusion_processed.npy"
+    acc_diffusion_path = acc_base + diffusion
+    gi_diffusion_path = gi_base + diffusion
+
     # data
     acc_cifar_f = np.load(acc_cifar_f_path)
     gi_cifar_f = np.load(gi_cifar_d_path)
@@ -40,20 +45,24 @@ if __name__ == "__main__":
     gi_cifar_clean = np.load(gi_cifar_clean_path)
     acc_cifar_101 = np.load(acc_cifar_101_path)
     gi_cifar_101 = np.load(gi_cifar_101_path)
+    acc_diffusion = np.load(acc_diffusion_path)
+    gi_diffusion = np.load(gi_diffusion_path)
 
     x_concat = np.concatenate((
         gi_cifar_f,
         gi_cifar_c,
         gi_cifar_transformed,
         gi_cifar_clean,
-        np.expand_dims(gi_cifar_101, 0),
+        gi_cifar_101.reshape(1),
+        gi_diffusion,
     ))
     y_concat = np.concatenate((
         acc_cifar_f,
         acc_cifar_c,
         acc_cifar_transformed,
         acc_cifar_clean,
-        np.expand_dims(acc_cifar_101, 0),
+        acc_cifar_101.reshape(1),
+        acc_diffusion,
     ))
 
     # plot
@@ -64,6 +73,7 @@ if __name__ == "__main__":
     plt.scatter(x=gi_cifar_f, y=acc_cifar_f, label="CIFAR-10-F")
     plt.scatter(x=gi_cifar_clean, y=acc_cifar_clean, label="Custom CIFAR-10 clean")
     plt.scatter(x=gi_cifar_101, y=acc_cifar_101, label="CIFAR-10.1")
+    plt.scatter(x=gi_diffusion, y=acc_diffusion, label="Diffusion model")
 
     plt.xlabel("Grayscale invariance")
     plt.ylabel("Accuracy")

@@ -5,15 +5,16 @@ import scipy.stats
 
 if __name__ == "__main__":
     model = "resnet"
+    # model = "repvgg"
     acc_base = f"dataset_{model}_ACC/"
     rp_base = f"dataset_{model}_RP/"
 
     # paths
-    cifar_f_path = "cifar10-f.npy"
+    cifar_f_path = "cifar10-f-32.npy"
     acc_cifar_f_path = acc_base + cifar_f_path
     rp_cifar_d_path = rp_base + cifar_f_path
 
-    cifar_c_path = "cifar10-c.npy"
+    cifar_c_path = "cifar-10.1-c.npy"
     acc_cifar_c_path = acc_base + cifar_c_path
     rp_cifar_c_path = rp_base + cifar_c_path
 
@@ -52,7 +53,7 @@ if __name__ == "__main__":
         rp_cifar_c,
         rp_cifar_transformed,
         rp_cifar_clean,
-        np.expand_dims(rp_cifar_101, 0),
+        rp_cifar_101.reshape(1),
         rp_diffusion,
     ))
     y_concat = np.concatenate((
@@ -60,7 +61,7 @@ if __name__ == "__main__":
         acc_cifar_c,
         acc_cifar_transformed,
         acc_cifar_clean,
-        np.expand_dims(acc_cifar_101, 0),
+        acc_cifar_101.reshape(1),
         acc_diffusion,
     ))
 
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     # x-axis is the rp, y-axis is the Accuracy
     plt.figure(figsize=(10, 8))
     plt.scatter(x=rp_cifar_transformed, y=acc_cifar_transformed, s=10, label="CIFAR-10-Transformed")
-    plt.scatter(x=rp_cifar_c, y=acc_cifar_c, label="CIFAR-10-C")
+    plt.scatter(x=rp_cifar_c, y=acc_cifar_c, label="CIFAR-10.1-C")
     plt.scatter(x=rp_cifar_f, y=acc_cifar_f, label="CIFAR-10-F")
     plt.scatter(x=rp_cifar_clean, y=acc_cifar_clean, label="Custom CIFAR-10 clean")
     plt.scatter(x=rp_cifar_101, y=acc_cifar_101, label="CIFAR-10.1")

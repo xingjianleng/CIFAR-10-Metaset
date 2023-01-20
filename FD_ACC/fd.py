@@ -2,71 +2,46 @@
 # https://github.com/Simon4Yan/Meta-set/blob/58e498cc95a879eec369d2ccf8da714baf8480e2/FD/many_fd.py
 import os
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from ResNet.model import ResNetCifar
-from LeNet.model import LeNet5Feature
-from FD_ACC.utils import TRANSFORM, CIFAR10F, CustomCIFAR
+from FD_ACC.utils import TRANSFORM, CustomCIFAR
 
 import torch
 from torch.utils.data import DataLoader
 import torchvision
 import numpy as np
-from tqdm import trange, tqdm
+from tqdm import tqdm
 from scipy import linalg
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
                         description='PyTorch CIFAR-10 FD-Metaset')
 parser.add_argument('-c', '--gpu', default='1', type=str,
                     help='GPU to use (leave blank for CPU only)')
-parser.add_argument('-s', '--save', default=False, type=bool,
+parser.add_argument('-s', '--save', default=True, type=bool,
                     help='whether save the calculated features')
 args = parser.parse_args()
 
 batch_size = 500
-use_cuda = args.gpu and torch.cuda.is_available()
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # load the model and change to evaluation mode
 used_model = "resnet"
-# used_model = "lenet"
+# used_model = "repvgg"
 
 if used_model == "resnet":
-    model = ResNetCifar(depth=110)
-    model.load_state_dict(torch.load("model/resnet110-180-9321.pt", map_location=torch.device("cpu")))
+    model = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_resnet56", pretrained=True)
     model = torch.nn.Sequential(*list(model.children())[:-1], torch.nn.Flatten())
-    # dimension of the feature
-    dims = 64  # ResNet
-elif used_model == "lenet":
-    model = LeNet5Feature()
-    model.load_state_dict(torch.load("model/lenet5-50.pt", map_location=torch.device("cpu")))
-    # dimension of the feature
-    dims = 84  # LeNet
+    dims = 64
+elif used_model == "repvgg":
+    model = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_repvgg_a0", pretrained=True)
+    model = torch.nn.Sequential(*list(model.children())[:-1], torch.nn.Flatten())
+    dims = 1280
 else:
     raise ValueError(f"Unexpected used_model: {used_model}")
 
-if use_cuda:
-    model.cuda()
+model.to(device)
 model.eval()
 
 
-def get_activations(dataloader, model, dims,
-                    cuda=False, verbose=False):
-    """Calculates the activations of the pool_3 layer for all images
-    Params:
-    -- files       : List of image files paths
-    -- model       : Instance of inception model
-    -- batch_size  : Batch size of images for the model to process at once.
-                        Make sure that the number of samples is a multiple of
-                        the batch size, otherwise some samples are ignored. This
-                        behavior is retained to match the original FD score
-                        implementation.
-    -- dims        : Dimensionality of features returned by Inception
-    -- cuda        : If set to True, use GPU
-    -- verbose     : If set to True and parameter out_step is given, the number
-                        of calculated batches is reported.
-    Returns:
-    -- A numpy array of dimension (num images, dims) that contains the
-        activations of the given tensor when feeding inception with the
-        query tensor.
-    """
+def get_activations(dataloader, model, dims, device, verbose=False):
     batch_size = dataloader.batch_size
     n_used_imgs = len(dataloader.dataset)
     n_batches = n_used_imgs // batch_size
@@ -83,9 +58,7 @@ def get_activations(dataloader, model, dims,
             end = start + batch_size
 
             batch, _ = data
-
-            if cuda:
-                batch = batch.cuda()
+            batch = batch.to(device)
 
             pred = model(batch)
             pred_arr[start:end] = pred.cpu().data.numpy().reshape(batch.shape[0], -1)
@@ -96,50 +69,14 @@ def get_activations(dataloader, model, dims,
     return pred_arr
 
 
-def calculate_activation_statistics(dataloader, model,
-                                    dims=64, cuda=False, verbose=False):
-    """Calculation of the statistics used by the FD.
-    Params:
-    -- files       : List of image files paths
-    -- model       : Instance of inception model
-    -- batch_size  : The images numpy array is split into batches with
-                     batch size batch_size. A reasonable batch size
-                     depends on the hardware.
-    -- dims        : Dimensionality of features returned by Inception
-    -- cuda        : If set to True, use GPU
-    -- verbose     : If set to True and parameter out_step is given, the
-                     number of calculated batches is reported.
-    Returns:
-    -- mu    : The mean over samples of the activations of the pool_3 layer of
-               the inception model.
-    -- sigma : The covariance matrix of the activations of the pool_3 layer of
-               the inception model.
-    """
-    act = get_activations(dataloader, model, dims, cuda, verbose=verbose)
+def calculate_activation_statistics(dataloader, model, dims, device, verbose=False):
+    act = get_activations(dataloader, model, dims, device, verbose=verbose)
     mu = np.mean(act, axis=0)
     sigma = np.cov(act, rowvar=False)
     return mu, sigma, act
 
 
 def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
-    """Numpy implementation of the Frechet Distance.
-    The Frechet distance between two multivariate Gaussian X_1 ~ N(mu_1, C_1)
-    and X_2 ~ N(mu_2, C_2) is
-            d^2 = ||mu_1 - mu_2||^2 + Tr(C_1 + C_2 - 2*sqrt(C_1*C_2)).
-    Stable version by Dougal J. Sutherland.
-    Params:
-    -- mu1   : Numpy array containing the activations of a layer of the
-                inception net (like returned by the function 'get_predictions')
-                for generated samples.
-    -- mu2   : The sample mean over activations, precalculated on a
-                representative data set.
-    -- sigma1: The covariance matrix over activations for generated samples.
-    -- sigma2: The covariance matrix over activations, precalculated on a
-                representative data set.
-    Returns:
-    --   : The Frechet Distance.
-    """
-
     mu1 = np.atleast_1d(mu1)
     mu2 = np.atleast_1d(mu2)
 
@@ -197,7 +134,7 @@ def get_cifar_test_feat():
             cifar_test_loader,
             model,
             dims,
-            use_cuda,
+            device,
             verbose=False,
         )
         # saving features of training set
@@ -212,11 +149,11 @@ def get_cifar_test_feat():
     return m1, s1, act1
 
 
-def custom_cifar_main():
+def main():
     # NOTE: change accordingly, may use os.listdir() method
     # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
     # files = sorted(os.listdir(base_dir))
-    dataset_name = "diffusion_processed"
+    dataset_name = "custom_cifar_clean"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"
     candidates = sorted(os.listdir(base_dir))
 
@@ -256,7 +193,7 @@ def custom_cifar_main():
             test_loader,
             model,
             dims,
-            use_cuda,
+            device,
             verbose=False
         )
         fd_value = calculate_frechet_distance(m1, s1, m2, s2)
@@ -276,89 +213,5 @@ def custom_cifar_main():
     #         f.write(f"{candidate}: {fd_value}\n")
 
 
-def cifar_f_main():
-    base_dir = '/data/lengx/cifar/cifar10-f-32'
-    test_dirs = sorted(os.listdir(base_dir))
-    feat_path = f"dataset_{used_model}_feature/cifar10-f/"
-
-    if args.save:
-        try:
-            os.makedirs(feat_path)
-        except FileExistsError:
-            pass
-
-    # NOTE: the "11" dataset have wrong labels, skip this dataset
-    try:
-        test_dirs.remove("11")
-    except ValueError:
-        pass
-
-    fd_values = np.zeros(len(test_dirs))
-    m1, s1, act1 = get_cifar_test_feat()
-
-    with torch.no_grad():
-        for i in trange(len(test_dirs)):
-            path = test_dirs[i]
-            test_loader = DataLoader(
-                dataset=CIFAR10F(
-                    path=base_dir + "/" + path,
-                    transform=TRANSFORM
-                ),
-                batch_size=batch_size,
-                shuffle=False,
-            )
-            m2, s2, act2 = calculate_activation_statistics(
-                test_loader,
-                model,
-                dims,
-                use_cuda,
-                verbose=False,
-            )
-
-            fd_value = calculate_frechet_distance(m1, s1, m2, s2)
-            fd_values[i] = fd_value
-
-            if args.save:
-                # saving features for nn regression
-                np.save(feat_path + '%s_mean' % path, m2)
-                np.save(feat_path + '%s_variance' % path, s2)
-                np.save(feat_path + '%s_feature' % path, act2)
-        np.save(f"dataset_{used_model}_FD/cifar10-f.npy", fd_values)
-
-
-def cifar101_main():
-    dataset_name = "cifar-10.1"
-    base_dir = f"/data/lengx/cifar/{dataset_name}/"
-
-    path_acc = f"dataset_{used_model}_FD/{dataset_name}.npy"
-
-    data_path = base_dir + "cifar10.1_v6_data.npy"
-    label_path = base_dir + "cifar10.1_v6_labels.npy"
-
-    m1, s1, act1 = get_cifar_test_feat()
-
-    test_loader = DataLoader(
-        dataset=CustomCIFAR(
-            data_path=data_path,
-            label_path=label_path,
-            transform=TRANSFORM,
-        ),
-        batch_size=batch_size,
-        shuffle=False
-    )
-    m2, s2, act2 = calculate_activation_statistics(
-        test_loader,
-        model,
-        dims,
-        use_cuda,
-        verbose=False,
-    )
-    fd_value = calculate_frechet_distance(m1, s1, m2, s2)
-    # save all accuracy to a file
-    np.save(path_acc, fd_value)
-
-
 if __name__ == '__main__':
-    # cifar_f_main()
-    custom_cifar_main()
-    # cifar101_main()
+    main()

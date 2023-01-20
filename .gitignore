@@ -17,17 +17,7 @@ working/
 **/.ipynb_checkpoints
 
 # large npy or pickle files
-dataset_resnet_FD/
-dataset_resnet_ACC/
-dataset_resnet_feature/
-dataset_resnet_RP/
-dataset_resnet_PS/
-dataset_resnet_ES/
-dataset_resnet_RI/
-dataset_resnet_GI/
-dataset_lenet_FD/
-dataset_lenet_ACC/
-dataset_lenet_feature/
+dataset_*/
 
 # plots of dataset and text files
 generated_files/

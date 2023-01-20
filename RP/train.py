@@ -11,7 +11,7 @@ import torch.utils.data
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
-from RP.model import ResNetRotation
+from RP.model import ResNetRotation, RepVGGRotation
 from RP.rotation import rotate_batch
 
 parser = argparse.ArgumentParser(description='PyTorch Training')
@@ -38,6 +38,8 @@ parser.add_argument('--rotation_type', default='rand')
 parser.set_defaults(augment=True)
 
 best_prec1 = 0
+used_model = "resnet"
+# used_model = "repvgg"
 
 
 def main():
@@ -66,7 +68,7 @@ def main():
         normalize
     ])
 
-    device = "cuda:3" if torch.cuda.is_available() else "cpu"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     kwargs = {'num_workers': 1, 'pin_memory': True} if device == "cuda" else {}
     train_loader = torch.utils.data.DataLoader(
         datasets.CIFAR10(
@@ -77,20 +79,16 @@ def main():
         batch_size=args.batch_size, shuffle=False, **kwargs)
 
     # create model
-    model = ResNetRotation(depth=args.layers).to(device)
+    if used_model == "resnet":
+        model = ResNetRotation()
+    elif used_model == "repvgg":
+        model = RepVGGRotation()
+    else:
+        raise ValueError(f"Unexpected used_model: {used_model}")
 
-    # Load the model dictionary
-    pretrained_dict = torch.load("model/resnet110-180-9321.pt")
-    model_dict = model.state_dict()
-    pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
-    model_dict.update(pretrained_dict) 
-    model.load_state_dict(model_dict)
-
-    # Freeze the backbone, only train the fully connected layers
+    # Freeze the backbone, only train the fully connected layer
     for param in model.parameters():
         param.requires_grad = False
-    model.fc_classification.weight.requires_grad = True
-    model.fc_classification.bias.requires_grad = True
     model.fc_rotation.weight.requires_grad = True
     model.fc_rotation.bias.requires_grad = True
 
@@ -102,8 +100,8 @@ def main():
     # for training on multiple GPUs.
     # Use CUDA_VISIBLE_DEVICES=0,1 to specify which GPUs to use
     # model = torch.nn.DataParallel(model).cuda()
-    model = model.to(device)
-
+    model.to(device)
+    model.eval()
     cudnn.benchmark = True
 
     # define loss function (criterion) and pptimizer
@@ -143,8 +141,8 @@ def train(train_loader, model, device, criterion, optimizer, epoch):
     losses = AverageMeter()
     top1 = AverageMeter()
 
-    # switch to train mode
-    model.train()
+    # As backbone is freezed, change it to evaluation mode
+    model.eval()
 
     end = time.time()
     for i, (input, target) in enumerate(train_loader):
@@ -238,7 +236,7 @@ def test(dataloader, model, device):
     model.eval()
     correct = []
     losses = []
-    for batch_idx, (inputs, labels) in enumerate(dataloader):
+    for _, (inputs, labels) in enumerate(dataloader):
         inputs, labels = rotate_batch(inputs, 'expand')
         inputs, labels = inputs.to(device), labels.to(device)
         with torch.no_grad():
@@ -248,7 +246,6 @@ def test(dataloader, model, device):
             _, predicted = outputs.max(1)
             correct.append(predicted.eq(labels).cpu())
     correct = torch.cat(correct).numpy()
-    model.train()
     print('self-supervised.avg:{:.4f}'.format(correct.mean() * 100))
 
 

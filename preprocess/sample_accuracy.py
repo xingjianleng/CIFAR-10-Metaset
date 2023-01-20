@@ -1,4 +1,3 @@
-from ResNet.model import ResNetCifar
 from FD_ACC.utils import CIFAR10F, CustomCIFAR, predict_multiple, TRANSFORM
 from pathlib import Path
 import os
@@ -8,10 +7,9 @@ from torch.utils.data import DataLoader
 import numpy as np
 from tqdm import tqdm
 
-device = "cuda:1" if torch.cuda.is_available() else "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 batch_size = 1000
-model = ResNetCifar(depth=110)
-model.load_state_dict(torch.load("model/resnet110-180-9321.pt", map_location=torch.device("cpu")))
+model = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_resnet56", pretrained=True)
 model.to(device)
 model.eval()
 # NOTE: Change this to adjust the sample accuracy

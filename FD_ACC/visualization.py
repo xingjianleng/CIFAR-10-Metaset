@@ -4,13 +4,13 @@ import scipy.stats
 
 
 if __name__ == "__main__":
-    # model = "lenet"
     model = "resnet"
+    # model = "repvgg"
     acc_base = f"dataset_{model}_ACC/"
     fd_base = f"dataset_{model}_FD/"
 
     # paths
-    cifar_f_path = "cifar10-f.npy"
+    cifar_f_path = "cifar10-f-32.npy"
     acc_cifar_f_path = acc_base + cifar_f_path
     fd_cifar_d_path = fd_base + cifar_f_path
 
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # acc_correct_wrong_path = acc_base + correct_wrong_path
     # fd_correct_wrong_path = fd_base + correct_wrong_path
 
-    cifar_c_path = "cifar10-c.npy"
+    cifar_c_path = "cifar-10.1-c.npy"
     acc_cifar_c_path = acc_base + cifar_c_path
     fd_cifar_c_path = fd_base + cifar_c_path
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         fd_cifar_c,
         fd_cifar_transformed,
         fd_cifar_clean,
-        np.expand_dims(fd_cifar_101, 0),
+        fd_cifar_101.reshape(1),
         fd_diffusion,
     ))
     y_concat = np.concatenate((
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         acc_cifar_c,
         acc_cifar_transformed,
         acc_cifar_clean,
-        np.expand_dims(acc_cifar_101, 0),
+        acc_cifar_101.reshape(1),
         acc_diffusion,
     ))
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # x-axis is the FD, y-axis is the Accuracy
     plt.figure(figsize=(10, 8))
     plt.scatter(x=fd_cifar_transformed, y=acc_cifar_transformed, s=10, label="CIFAR-10-Transformed")
-    plt.scatter(x=fd_cifar_c, y=acc_cifar_c, label="CIFAR-10-C")
+    plt.scatter(x=fd_cifar_c, y=acc_cifar_c, label="CIFAR-10.1-C")
     plt.scatter(x=fd_cifar_f, y=acc_cifar_f, label="CIFAR-10-F")
     # plt.scatter(x=fd_custom_cifar, y=acc_custom_cifar, label="Custom CIFAR")
     # plt.scatter(x=fd_correct_wrong, y=acc_correct_wrong, label="Sampled target accuracy")

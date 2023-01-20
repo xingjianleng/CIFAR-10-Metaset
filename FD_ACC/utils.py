@@ -133,21 +133,12 @@ def predict_multiple(model, imgs):
 
 
 def dataset_acc(dataloader, model, device):
-    total_classes = len(CLASSES)
-    total = dict(zip(range(total_classes), [0] * total_classes))
-    correct = dict(zip(range(total_classes), [0] * total_classes))
-
+    correct = []
     # prediction on images in the folder
     with torch.no_grad():
         for imgs, labels in iter(dataloader):
-            imgs = imgs.to(device)
+            imgs, labels = imgs.to(device), labels.to(device)
             pred_multi, _ = predict_multiple(model=model, imgs=imgs)
-            # TODO: Allow setting a threshold to consider correct prediction
-            #       e.g., if the softmax value is greater than a threshold, we can consider
-            #       it as a correct prediction
-            for i in range(len(labels)):
-                total[int(labels[i])] += 1
-                if pred_multi[i] == labels[i]:
-                    correct[int(labels[i])] += 1
-
-    return correct, total
+            correct.append(pred_multi.squeeze(1).eq(labels).cpu())
+    correct = torch.cat(correct).numpy()
+    return np.mean(correct)
