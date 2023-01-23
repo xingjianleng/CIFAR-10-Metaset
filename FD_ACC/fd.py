@@ -201,9 +201,9 @@ def main():
 
         # saving features for nn regression
         if args.save:
-            np.save(feat_path + '%s_mean' % candidate, m2)
-            np.save(feat_path + '%s_variance' % candidate, s2)
-            np.save(feat_path + '%s_feature' % candidate, act2)
+            np.save(f"{feat_path}{i}_mean", m2)
+            np.save(f"{feat_path}{i}_variance", s2)
+            np.save(f"{feat_path}{i}_feature", act2)
     # save all frechet-inception-distance to a file
     np.save(path_fd, fd_values)
 
