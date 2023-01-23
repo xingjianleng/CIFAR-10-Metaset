@@ -61,8 +61,7 @@ def process_multiple(imgs_path):
                 res = process_single(str(file))
                 rtn.append(res)
             except:
-                print(f"File: {file} deleted due to processing failure")
-                file.unlink()
+                print(f"File: {file} skipped due to processing failure")
     return rtn
 
 

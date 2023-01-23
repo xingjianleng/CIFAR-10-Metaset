@@ -42,6 +42,10 @@ if __name__ == "__main__":
     acc_diffusion_path = acc_base + diffusion
     fd_diffusion_path = fd_base + diffusion
 
+    cartoon = "google_cartoon.npy"
+    acc_cartoon_path = acc_base + cartoon
+    fd_cartoon_path = fd_base + cartoon
+
     # data
     acc_cifar_f = np.load(acc_cifar_f_path)
     fd_cifar_f = np.load(fd_cifar_d_path)
@@ -59,6 +63,8 @@ if __name__ == "__main__":
     fd_cifar_101 = np.load(fd_cifar_101_path)
     acc_diffusion = np.load(acc_diffusion_path)
     fd_diffusion = np.load(fd_diffusion_path)
+    acc_cartoon = np.load(acc_cartoon_path)
+    fd_cartoon = np.load(fd_cartoon_path)
 
     x_concat = np.concatenate((
         fd_cifar_f,
@@ -67,6 +73,7 @@ if __name__ == "__main__":
         fd_cifar_clean,
         fd_cifar_101.reshape(1),
         fd_diffusion,
+        fd_cartoon,
     ))
     y_concat = np.concatenate((
         acc_cifar_f,
@@ -75,6 +82,7 @@ if __name__ == "__main__":
         acc_cifar_clean,
         acc_cifar_101.reshape(1),
         acc_diffusion,
+        acc_cartoon,
     ))
 
     # plot
@@ -88,6 +96,7 @@ if __name__ == "__main__":
     plt.scatter(x=fd_cifar_clean, y=acc_cifar_clean, label="Custom CIFAR-10 clean")
     plt.scatter(x=fd_cifar_101, y=acc_cifar_101, label="CIFAR-10.1")
     plt.scatter(x=fd_diffusion, y=acc_diffusion, label="Diffusion model")
+    plt.scatter(x=fd_cartoon, y=acc_cartoon, label="Google Cartoon")
 
     plt.xlabel("FD")
     plt.ylabel("Accuracy")

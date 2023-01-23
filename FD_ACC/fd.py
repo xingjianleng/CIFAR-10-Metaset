@@ -23,8 +23,8 @@ batch_size = 500
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # load the model and change to evaluation mode
-used_model = "resnet"
-# used_model = "repvgg"
+# used_model = "resnet"
+used_model = "repvgg"
 
 if used_model == "resnet":
     model = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_resnet56", pretrained=True)
@@ -153,7 +153,7 @@ def main():
     # NOTE: change accordingly, may use os.listdir() method
     # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
     # files = sorted(os.listdir(base_dir))
-    dataset_name = "custom_cifar_clean"
+    dataset_name = "google_cartoon"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"
     candidates = sorted(os.listdir(base_dir))
 

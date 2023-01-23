@@ -35,6 +35,10 @@ if __name__ == "__main__":
     acc_diffusion_path = acc_base + diffusion
     es_diffusion_path = es_base + diffusion
 
+    cartoon = "google_cartoon.npy"
+    acc_cartoon_path = acc_base + cartoon
+    es_cartoon_path = es_base + cartoon
+
     # data
     acc_cifar_f = np.load(acc_cifar_f_path)
     es_cifar_f = np.load(es_cifar_d_path)
@@ -48,6 +52,8 @@ if __name__ == "__main__":
     es_cifar_101 = np.load(es_cifar_101_path)
     acc_diffusion = np.load(acc_diffusion_path)
     es_diffusion = np.load(es_diffusion_path)
+    acc_cartoon = np.load(acc_cartoon_path)
+    es_cartoon = np.load(es_cartoon_path)
 
     x_concat = np.concatenate((
         es_cifar_f,
@@ -56,6 +62,7 @@ if __name__ == "__main__":
         es_cifar_clean,
         es_cifar_101.reshape(1),
         es_diffusion,
+        es_cartoon,
     ))
     y_concat = np.concatenate((
         acc_cifar_f,
@@ -64,6 +71,7 @@ if __name__ == "__main__":
         acc_cifar_clean,
         acc_cifar_101.reshape(1),
         acc_diffusion,
+        acc_cartoon,
     ))
 
     # plot
@@ -75,6 +83,7 @@ if __name__ == "__main__":
     plt.scatter(x=es_cifar_clean, y=acc_cifar_clean, label="Custom CIFAR-10 clean")
     plt.scatter(x=es_cifar_101, y=acc_cifar_101, label="CIFAR-10.1")
     plt.scatter(x=es_diffusion, y=acc_diffusion, label="Diffusion model")
+    plt.scatter(x=es_cartoon, y=acc_cartoon, label="Google Cartoon")
 
     plt.xlabel("Entropy Score")
     plt.ylabel("Accuracy")

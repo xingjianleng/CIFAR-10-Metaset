@@ -49,16 +49,16 @@ def main():
     ssh_acc = []
 
     # NOTE: change accordingly, may use os.listdir() method
-    base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
-    files = sorted(os.listdir(base_dir))
-    dataset_name = "cifar10-transformed"
-    # base_dir = f"/data/lengx/cifar/{dataset_name}/"
-    # candidates = sorted(os.listdir(base_dir))
+    # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
+    # files = sorted(os.listdir(base_dir))
+    dataset_name = "google_cartoon"
+    base_dir = f"/data/lengx/cifar/{dataset_name}/"
+    candidates = sorted(os.listdir(base_dir))
 
-    candidates = []
-    for file in files:
-        if file.endswith(".npy") and file.startswith("new_data"):
-            candidates.append(file)
+    # candidates = []
+    # for file in files:
+    #     if file.endswith(".npy") and file.startswith("new_data"):
+    #         candidates.append(file)
     path_RP = f"dataset_{used_model}_RP/{dataset_name}.npy"
 
     with torch.no_grad():
@@ -67,11 +67,11 @@ def main():
             #       so we skip the classification accuracy as it was covered in
             #       FD_ACC module. So, only rotation prediction accuracy is recorded
 
-            # data_path = base_dir + f"{candidate}/data.npy"
-            # label_path = base_dir + f"{candidate}/labels.npy"
+            data_path = base_dir + f"{candidate}/data.npy"
+            label_path = base_dir + f"{candidate}/labels.npy"
             # CIFAR-10-Transformed
-            data_path = base_dir + candidate
-            label_path = "/data/lengx/cifar/cifar10-test-transformed/labels.npy"
+            # data_path = base_dir + candidate
+            # label_path = "/data/lengx/cifar/cifar10-test-transformed/labels.npy"
             test_loader = torch.utils.data.DataLoader(
                 dataset=CustomCIFAR(
                     data_path=data_path,

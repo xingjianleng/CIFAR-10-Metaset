@@ -32,7 +32,7 @@ def main():
     # NOTE: change accordingly
     # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
     # files = sorted(os.listdir(base_dir))
-    dataset_name = "custom_cifar_clean"
+    dataset_name = "google_cartoon"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"
     candidates = sorted(os.listdir(base_dir))
 
