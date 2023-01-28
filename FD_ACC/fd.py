@@ -15,7 +15,7 @@ parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
                         description='PyTorch CIFAR-10 FD-Metaset')
 parser.add_argument('-c', '--gpu', default='1', type=str,
                     help='GPU to use (leave blank for CPU only)')
-parser.add_argument('-s', '--save', default=True, type=bool,
+parser.add_argument('-s', '--save', default=False, type=bool,
                     help='whether save the calculated features')
 args = parser.parse_args()
 
@@ -23,8 +23,8 @@ batch_size = 500
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # load the model and change to evaluation mode
-# used_model = "resnet"
-used_model = "repvgg"
+used_model = "resnet"
+# used_model = "repvgg"
 
 if used_model == "resnet":
     model = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_resnet56", pretrained=True)
