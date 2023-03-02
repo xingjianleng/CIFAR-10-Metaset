@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 
 # determine the device to use
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda:3" if torch.cuda.is_available() else "cpu"
 batch_size = 500
 
 # load the model and change to evaluation mode
@@ -27,9 +27,9 @@ model.eval()
 
 def main():
     # NOTE: change accordingly
-    # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
+    # base_dir = "/data/lengx/cifar/train_data/"
     # files = sorted(os.listdir(base_dir))
-    dataset_name = "google_cartoon"
+    dataset_name = "test_data_processed_ver2.0"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"
     candidates = sorted(os.listdir(base_dir))
 
@@ -64,9 +64,9 @@ def main():
     np.save(path_acc, acc_stats)
 
     # save the correspondence of dataset and its accuracy
-    # with open(f"generated_files/acc_correspondence_{used_model}.txt", "w") as f:
-    #     for candidate, acc in zip(candidates, acc_stats):
-    #         f.write(f"{candidate}: {acc}\n")
+    with open(f"generated_files/acc_correspondence_{used_model}.txt", "w") as f:
+        for candidate, acc in zip(candidates, acc_stats):
+            f.write(f"{candidate}: {acc}\n")
 
 
 if __name__ == "__main__":

@@ -10,12 +10,12 @@ from FD_ACC.utils import CustomCIFAR, TRANSFORM
 
 
 # determine the device to use
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda:3" if torch.cuda.is_available() else "cpu"
 batch_size = 500
 
 # load the model and change to evaluation mode
-used_model = "resnet"
-# used_model = "repvgg"
+# used_model = "resnet"
+used_model = "repvgg"
 
 if used_model == "resnet":
     model = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_resnet56", pretrained=True)
@@ -30,26 +30,26 @@ model.eval()
 
 def main():
     # NOTE: change accordingly
-    # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
-    # files = sorted(os.listdir(base_dir))
-    dataset_name = "google_cartoon"
-    base_dir = f"/data/lengx/cifar/{dataset_name}/"
-    candidates = sorted(os.listdir(base_dir))
+    base_dir = "/data/lengx/cifar/train_data/"
+    files = sorted(os.listdir(base_dir))
+    dataset_name = "train_data"
+    # base_dir = f"/data/lengx/cifar/{dataset_name}/"
+    # candidates = sorted(os.listdir(base_dir))
 
     # NOTE: code for CIFAR transformed 1000
-    # candidates = []
-    # for file in files:
-    #     if file.endswith(".npy") and file.startswith("new_data"):
-    #         candidates.append(file)
+    candidates = []
+    for file in files:
+        if file.endswith(".npy") and file.startswith("new_data"):
+            candidates.append(file)
 
     path_gi = f"dataset_{used_model}_GI/{dataset_name}.npy"
     gi_stats = np.zeros(len(candidates))
 
     for i, candidate in enumerate(tqdm(candidates)):
-        data_path = base_dir + f"{candidate}/data.npy"
-        label_path = base_dir + f"{candidate}/labels.npy"
-        # data_path = base_dir + candidate
-        # label_path = f"{base_dir}/labels.npy"
+        # data_path = base_dir + f"{candidate}/data.npy"
+        # label_path = base_dir + f"{candidate}/labels.npy"
+        data_path = base_dir + candidate
+        label_path = f"{base_dir}/labels.npy"
 
         test_loader = torch.utils.data.DataLoader(
             dataset=CustomCIFAR(

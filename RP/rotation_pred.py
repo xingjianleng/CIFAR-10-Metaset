@@ -17,11 +17,11 @@ parser.add_argument('--print-freq', '-p', default=10, type=int,
 args = parser.parse_args()
 
 # the model used
-used_model = "resnet"
-# used_model = "repvgg"
+# used_model = "resnet"
+used_model = "repvgg"
 
 # create model and decide which GPU to use
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda:2" if torch.cuda.is_available() else "cpu"
 if used_model == "resnet":
     model = ResNetRotation()
     model_state = model.state_dict()
@@ -49,16 +49,16 @@ def main():
     ssh_acc = []
 
     # NOTE: change accordingly, may use os.listdir() method
-    # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
-    # files = sorted(os.listdir(base_dir))
-    dataset_name = "google_cartoon"
-    base_dir = f"/data/lengx/cifar/{dataset_name}/"
-    candidates = sorted(os.listdir(base_dir))
+    base_dir = "/data/lengx/cifar/train_data/"
+    files = sorted(os.listdir(base_dir))
+    dataset_name = "train_data"
+    # base_dir = f"/data/lengx/cifar/{dataset_name}/"
+    # candidates = sorted(os.listdir(base_dir))
 
-    # candidates = []
-    # for file in files:
-    #     if file.endswith(".npy") and file.startswith("new_data"):
-    #         candidates.append(file)
+    candidates = []
+    for file in files:
+        if file.endswith(".npy") and file.startswith("new_data"):
+            candidates.append(file)
     path_RP = f"dataset_{used_model}_RP/{dataset_name}.npy"
 
     with torch.no_grad():
@@ -67,11 +67,11 @@ def main():
             #       so we skip the classification accuracy as it was covered in
             #       FD_ACC module. So, only rotation prediction accuracy is recorded
 
-            data_path = base_dir + f"{candidate}/data.npy"
-            label_path = base_dir + f"{candidate}/labels.npy"
+            # data_path = base_dir + f"{candidate}/data.npy"
+            # label_path = base_dir + f"{candidate}/labels.npy"
             # CIFAR-10-Transformed
-            # data_path = base_dir + candidate
-            # label_path = "/data/lengx/cifar/cifar10-test-transformed/labels.npy"
+            data_path = base_dir + candidate
+            label_path = f"{base_dir}/labels.npy"
             test_loader = torch.utils.data.DataLoader(
                 dataset=CustomCIFAR(
                     data_path=data_path,

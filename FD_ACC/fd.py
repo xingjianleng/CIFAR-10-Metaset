@@ -20,7 +20,7 @@ parser.add_argument('-s', '--save', default=False, type=bool,
 args = parser.parse_args()
 
 batch_size = 500
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda:3" if torch.cuda.is_available() else "cpu"
 
 # load the model and change to evaluation mode
 used_model = "resnet"
@@ -151,9 +151,9 @@ def get_cifar_test_feat():
 
 def main():
     # NOTE: change accordingly, may use os.listdir() method
-    # base_dir = "/data/lengx/cifar/cifar10-test-transformed/"
+    # base_dir = "/data/lengx/cifar/train_data/"
     # files = sorted(os.listdir(base_dir))
-    dataset_name = "google_cartoon"
+    dataset_name = "test_data_processed_ver2.0"
     base_dir = f"/data/lengx/cifar/{dataset_name}/"
     candidates = sorted(os.listdir(base_dir))
 
@@ -178,7 +178,7 @@ def main():
         label_path = base_dir + f"{candidate}/labels.npy"
         # CIFAR-10-Transformed
         # data_path = base_dir + candidate
-        # label_path = "/data/lengx/cifar/cifar10-test-transformed/labels.npy"
+        # label_path = f"{base_dir}/labels.npy"
 
         test_loader = DataLoader(
             dataset=CustomCIFAR(
